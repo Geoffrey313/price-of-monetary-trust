@@ -70,11 +70,22 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="do not compare regenerated files with the pre-existing outputs",
     )
+    parser.add_argument(
+        "--from-derived",
+        action="store_true",
+        help="reproduce from the committed data/derived/ layer, without WRDS access",
+    )
     args = parser.parse_args(argv)
+
+    if args.from_derived:
+        import os
+
+        os.environ["FOUR_QUADRANT_FROM_DERIVED"] = "1"
 
     before = file_hashes()
     refresh = ("--refresh-fred",) if args.refresh_fred else ()
-    run_step("data fetch and input preflight", "data.fetch_inputs", *refresh)
+    if not args.from_derived:
+        run_step("data fetch and input preflight", "data.fetch_inputs", *refresh)
     run_step("full-sample H1--H3", "analysis.run_full_sample")
     run_step("era and state analysis", "analysis.era_state")
     run_step("post-2000 panel", "analysis.post_2000_panel")
@@ -83,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
     run_step("state figures", "figures.figures_state")
     run_step("macroeconomic controls", "analysis.macro_controls")
     run_step("appendix tables", "figures.appendix_tables")
+    run_step("supply-shock IRF (US complement)", "analysis.supply_shock_irf")
 
     after = file_hashes()
     changed = [] if args.no_hash_check else compare_existing(before, after)

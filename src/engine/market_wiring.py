@@ -10,15 +10,20 @@ from __future__ import annotations
 
 import pandas as pd
 
-from common.names import MARKETS
+from common.names import EURO, MARKETS
 from engine import engine as E
 from engine import equity_reconstruction as F
 
 
 def wire_all() -> None:
-    """Install the registered reconstructed equity and macro series."""
+    """Install the base (non-euro) reconstructed equity and macro series.
+
+    This is the engine-layer helper. Euro markets are wired separately, on top of
+    this, by ``run_full_sample.wire_everything()``, the single complete entry
+    point. Callers should use ``wire_everything()``, not this function directly.
+    """
     for market, config in F.CFG.items():
-        if market not in MARKETS:
+        if market not in MARKETS or market in EURO:
             continue
         frame = pd.read_parquet(F.CACHE / f"{market}_recon.parquet")
         returns = pd.Series(

@@ -15,8 +15,6 @@ targeting are collinear at 1999 and cannot be separated. Run: python rdd_1999.py
 """
 import numpy as np, pandas as pd
 import statsmodels.api as sm
-from analysis import euro_experiment as EU
-from engine import market_wiring as P
 
 GROUP = {"DEU": "euro", "FRA": "euro", "ESP": "euro", "NLD": "euro", "BEL": "euro",
          "CHE": "eurofloat", "GBR": "eurofloat", "NOR": "eurofloat",
@@ -24,11 +22,9 @@ GROUP = {"DEU": "euro", "FRA": "euro", "ESP": "euro", "NLD": "euro", "BEL": "eur
 
 
 def build_panel():
-    P.wire_all()
-    # wire all 5 euro members via the same euro-legacy machinery (overrides wire_all's DE/FR)
-    for mkt in ["DEU", "FRA", "ESP", "NLD", "BEL"]:
-        cfg = EU.EURO_CONFIG[mkt]
-        EU.wire(mkt, cfg, EU.equity_recon(None, mkt, cfg[5]))
+    from analysis.run_full_sample import wire_everything
+
+    wire_everything()
     from engine import engine as E
     E.run_market.return_series = True
     rows = []

@@ -9,12 +9,10 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analysis import euro_experiment as EU
 from analysis import rdd_1999 as R_
 from common.names import ENGLISH_NAMES as NAMES
 from data.treasury_total_return import construct_monthly_tr
 from engine import engine as E
-from engine import market_wiring as P
 
 
 def ann(r):
@@ -22,10 +20,9 @@ def ann(r):
 
 
 def main() -> int:
-    P.wire_all()
-    for m in ["DEU", "FRA", "ESP", "NLD", "BEL"]:
-        cfg = EU.EURO_CONFIG[m]
-        EU.wire(m, cfg, EU.equity_recon(None, m, cfg[5]))
+    from analysis.run_full_sample import wire_everything
+
+    wire_everything()
     rows = []
     for m in R_.GROUP:
         try:

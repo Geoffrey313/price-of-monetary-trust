@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the paper below."
+title: "Bonds or Gold: The Price of Monetary Trust"
+abstract: >
+  A test of the practitioner four-quadrant allocation framework, decomposed into
+  its energy and monetary axes on thirteen markets. The monetary axis, a bond
+  total-return index over gold, survives; the energy axis does not; the surviving
+  rule is a single binary switch between bonds and gold.
+type: software
+authors:
+  - family-names: Ducournau
+    given-names: Geoffrey
+    affiliation: "Dimtech SAS"
+  - family-names: Li
+    given-names: Jinliang
+    affiliation: "Tsinghua University"
+date-released: 2026-07-28
+license: MIT
+url: "https://github.com/Geoffrey313/price-of-monetary-trust"
+repository-code: "https://github.com/Geoffrey313/price-of-monetary-trust"
+keywords:
+  - asset allocation
+  - gold
+  - government bonds
+  - regime switching
+  - monetary trust
+  - international markets

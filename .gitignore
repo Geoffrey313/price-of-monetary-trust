@@ -15,6 +15,8 @@ venv/
 # --- Local/raw data (public source archives and licensed WRDS/CRSP inputs) ---
 /data/*
 !/data/README.md
+!/data/derived/
+!/data/vendor/
 
 # --- Pre-publication exploratory workspace (canonical code is under src/) ---
 /tooling/
@@ -27,6 +29,12 @@ paper/*.fdb_latexmk
 paper/*.out
 paper/*.toc
 paper/*.synctex.gz
+
+# stray LaTeX artifacts anywhere (root-level leaks)
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+texput.*
 paper/*.bbl
 paper/*.blg
 
@@ -58,3 +66,11 @@ paper/spec-tables-annexe-codex-fr.md
 
 # --- Abandoned twenty-market results (not used in the paper) ---
 /results/complete-sample-20-markets-*/
+
+# Only the French manuscript is published (English and prior-paper drafts excluded)
+/paper/bonds-or-gold.tex
+/paper/bonds-or-gold.pdf
+/paper/four-quadrants.tex
+/paper/four-quadrants.pdf
+/paper/outline.md
+/paper/paper-structure.md

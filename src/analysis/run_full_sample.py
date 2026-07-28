@@ -85,7 +85,24 @@ NBOOT_H1 = 2000
 N_PERM_H2 = 20000
 
 def wire_everything() -> None:
-    """Wire every master-market input into the H1 engine."""
+    """Wire every master-market input into the H1 engine.
+
+    With ``FOUR_QUADRANT_FROM_DERIVED=1`` and the derived layer present, inputs
+    load from ``data/derived/`` and WRDS reconstruction is skipped entirely.
+    """
+    import os
+
+    if os.environ.get("FOUR_QUADRANT_FROM_DERIVED") == "1":
+        from engine import derived_inputs as D
+
+        if not D.available():
+            missing = ", ".join(D.missing_files())
+            raise FileNotFoundError(
+                "FOUR_QUADRANT_FROM_DERIVED=1 was requested, but the derived "
+                f"layer is incomplete under data/derived/: {missing}"
+            )
+        D.wire_from_derived()
+        return
     P.wire_all()
     for mkt in ["DEU", "FRA", "ESP", "NLD", "BEL"]:
         cfg = EU.EURO_CONFIG[mkt]
