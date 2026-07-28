@@ -1,7 +1,8 @@
 # Bonds or Gold: The Price of Monetary Trust
 
-This repository holds a research paper and the code that reproduces it. The
-manuscript is in French: `paper/bonds-or-gold-fr.tex`.
+This repository holds only the code that reproduces the results of the paper
+*Bonds or Gold: The Price of Monetary Trust*. The manuscript and the data are not
+distributed here; the code below rebuilds every result from source.
 
 The study starts from a simple ratio, long government bonds over gold, and asks
 whether it carries usable information about the monetary regime. It also asks
@@ -60,11 +61,10 @@ src/common/    market constants, frozen protocol values, and portable paths
 src/data/      public snapshots, WRDS access, and bond-return construction
 src/engine/    the portfolio engine and equity reference reconstruction
 src/analysis/  H1--H3, era analyses, and macroeconomic controls
-src/figures/   paper figures and generated appendix tables
+src/figures/   figures and generated appendix tables
 protocol/      frozen source, deviation, and trial records
-paper/         manuscript, compiled PDF, and generated appendix tables
-results/       figures and tables used by the paper
 reproduce.py   deterministic end-to-end entry point
+data/README.md where to place licensed and downloaded inputs (the data is not shipped)
 ```
 
 ## Reproducing the results
@@ -74,9 +74,10 @@ reproduce.py   deterministic end-to-end entry point
 2. Install the dependencies: `pip install -r requirements.txt`.
 3. Put licensed WRDS/CRSP reconstructions and downloaded public inputs in the
    layout documented by `data/README.md`, or set `FOUR_QUADRANT_DATA_DIR`.
-4. Run `python reproduce.py`. It validates the input layer, rebuilds H1--H3,
-   the era analyses, figures, macro controls, and `paper/_gen`, then checks that
-   every pre-existing output retains the same SHA-256 digest.
+4. Run `python reproduce.py`. It rebuilds H1--H3, the era analyses, figures, and
+   macro controls, and writes the outputs locally. Neither the generated outputs
+   nor the manuscript are stored in this repository; the code is the single
+   source of truth.
 
 Use `python reproduce.py --refresh-fred` only when intentionally refreshing the
 public FRED snapshots. Direct module commands use `PYTHONPATH=src`, for example
@@ -95,12 +96,10 @@ excluded from version control.
 
 ## The paper
 
-Compile with `latexmk -cd -pdf paper/bonds-or-gold-fr.tex` so paths to
-`results/` are resolved from the manuscript directory. The compiled PDF sits
-in `paper/`. The appendix variable and notation tables are generated into
-`paper/_gen/` from the sample outputs.
+The manuscript itself is not distributed in this repository. This repository
+contains only the code that reproduces its results.
 
 ## Disclaimer
 
-This is a research paper about an illustrative allocation rule. Nothing here is
-investment advice, and the rule is not a security.
+This code accompanies a research paper about an illustrative allocation rule.
+Nothing here is investment advice, and the rule is not a security.

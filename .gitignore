@@ -12,11 +12,12 @@ __pycache__/
 .venv/
 venv/
 
-# --- Local/raw data (public source archives and licensed WRDS/CRSP inputs) ---
+# --- This repository publishes ONLY the code that reproduces the results. ---
+# --- The manuscript, the generated results, and all input/output data stay out. ---
+/paper/
+/results/
 /data/*
 !/data/README.md
-!/data/derived/
-!/data/vendor/
 
 # --- Pre-publication exploratory workspace (canonical code is under src/) ---
 /tooling/
@@ -35,6 +36,9 @@ paper/*.synctex.gz
 *.fls
 *.synctex.gz
 texput.*
+*.aux
+*.out
+/*.log
 paper/*.bbl
 paper/*.blg
 
