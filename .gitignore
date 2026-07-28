@@ -1,0 +1,60 @@
+# --- Credentials and environment ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+venv/
+
+# --- Local/raw data (public source archives and licensed WRDS/CRSP inputs) ---
+/data/*
+!/data/README.md
+
+# --- Pre-publication exploratory workspace (canonical code is under src/) ---
+/tooling/
+
+# --- LaTeX build artifacts (the .tex and .pdf are kept) ---
+paper/*.aux
+paper/*.log
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.out
+paper/*.toc
+paper/*.synctex.gz
+paper/*.bbl
+paper/*.blg
+
+# --- Internal working notes, drafts and review material (not part of reproduction) ---
+/CONCLUSIONS-FINALES-fr.md
+/DECISION-ECHANTILLON-FINAL-13-MARCHES-fr.md
+/EXPLICATION-SIGNAL-MONETAIRE-fr.md
+/INTERPRETATION-HAYEK-KEYNES-FRIEDMAN-fr.md
+/PLAN-*.md
+/POLITIQUE-MONETAIRE-SIGNAL-CONTREFACTUEL-fr.md
+/TEST-CONTROLES-PETROLE-POLITIQUE-BILAN-fr.md
+/TEST-HETEROGENEITE-DEVELOPPEMENT-MARCHES-fr.md
+/VALIDATION-HIERARCHIQUE-7-MARCHES-fr.md
+/TODO.md
+/DOCUMENTS.md
+/owner-actions-before-freeze.md
+/REPO-RULES.md
+/REPO-REFACTOR-PLAYBOOK.md
+/PAPER-RULES.md
+/design/
+/implementation/
+/source/
+/review/
+paper/polishing-rules.md
+paper/spec-tables-annexe-codex-fr.md
+
+# --- Analysis logs and audit notes under results/ (the data folders are kept) ---
+/results/*.md
+
+# --- Abandoned twenty-market results (not used in the paper) ---
+/results/complete-sample-20-markets-*/

@@ -1,0 +1,12 @@
+pandas
+numpy
+scipy
+matplotlib
+statsmodels
+linearmodels
+xlrd
+pyarrow
+requests
+pydantic
+pydantic-settings
+wrds
