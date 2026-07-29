@@ -1,5 +1,10 @@
 # Bonds or Gold: The Price of Monetary Trust
 
+Replication package for:
+
+> **Bonds or Gold: The Price of Monetary Trust**
+> Geoffrey Ducournau, Jinliang Li
+
 This repository holds only the code that reproduces the results of the paper
 *Bonds or Gold: The Price of Monetary Trust*. The manuscript and the data are not
 distributed here; the code below rebuilds every result from source.
