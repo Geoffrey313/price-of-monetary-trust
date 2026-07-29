@@ -31,6 +31,7 @@ import numpy as np
 import pandas as pd
 
 from common.paths import FULL_SAMPLE_RESULTS
+from figures.i18n import L, figpath, market_name
 from figures.plot_style import (
     BLUE,
     GOLD,
@@ -56,7 +57,10 @@ def advantage_order() -> tuple[list[str], dict[str, str]]:
     per = pd.read_csv(PER_MARKET)
     per = per.sort_values("advantage", ascending=False).reset_index(drop=True)
     order = per["market"].tolist()
-    names = dict(zip(per["market"], per["country"]))
+    names = {
+        code: market_name(code, country)
+        for code, country in zip(per["market"], per["country"])
+    }
     return order, names
 
 
@@ -102,9 +106,9 @@ def heatmap(order: list[str], names: dict[str, str]) -> None:
     ax.set_yticklabels([names[m] for m in order])
     ax.legend(
         handles=[
-            Patch(fc=BLUE, label="obligations"),
-            Patch(fc=GOLD, label="or"),
-            Patch(fc=OUTSIDE, label="hors fenêtre"),
+            Patch(fc=BLUE, label=L("obligations", "bonds")),
+            Patch(fc=GOLD, label=L("or", "gold")),
+            Patch(fc=OUTSIDE, label=L("hors fenêtre", "out of window")),
         ],
         loc="upper left",
         ncol=3,
@@ -123,7 +127,7 @@ def heatmap(order: list[str], names: dict[str, str]) -> None:
     lower.set_ylim(0, 1)
     lower.set_yticks([0, 0.5, 1])
     lower.set_yticklabels(["0", "50", "100"])
-    lower.set_ylabel(r"marchés en or (\%)", fontsize=9)
+    lower.set_ylabel(L(r"marchés en or (\%)", r"markets in gold (\%)"), fontsize=9)
     lower.xaxis.set_major_locator(mdates.YearLocator(10))
     lower.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     lower.grid(axis="y", color=GRID, lw=0.7)
@@ -132,7 +136,7 @@ def heatmap(order: list[str], names: dict[str, str]) -> None:
             axis.spines[spine].set_visible(False)
         axis.tick_params(length=0)
     fig.tight_layout()
-    fig.savefig(OUT / "currency_signal_heatmap_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "currency_signal_heatmap_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -165,7 +169,7 @@ def timeline(order: list[str], names: dict[str, str]) -> None:
     ax.set_xlim(month_starts[0], right_edge)
     ax.xaxis.set_major_locator(mdates.YearLocator(10))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    ax.set_xlabel(r"mois")
+    ax.set_xlabel(L(r"mois", r"month"))
     ax.set_axisbelow(False)
     for boundary in range(1, len(order)):
         ax.axhline(boundary, color=SURFACE, lw=1.0, zorder=2)
@@ -174,9 +178,9 @@ def timeline(order: list[str], names: dict[str, str]) -> None:
     ax.tick_params(axis="y", length=0)
     ax.legend(
         handles=[
-            Patch(facecolor=BLUE, edgecolor="none", label=r"état obligations"),
-            Patch(facecolor=ORANGE, edgecolor="none", label=r"état or"),
-            Line2D([], [], color=INK, lw=1.1, ls=(0, (4, 3)), label=r"janvier 2000"),
+            Patch(facecolor=BLUE, edgecolor="none", label=L(r"état obligations", r"bond state")),
+            Patch(facecolor=ORANGE, edgecolor="none", label=L(r"état or", r"gold state")),
+            Line2D([], [], color=INK, lw=1.1, ls=(0, (4, 3)), label=L(r"janvier 2000", r"January 2000")),
         ],
         frameon=False,
         ncol=3,
@@ -184,7 +188,7 @@ def timeline(order: list[str], names: dict[str, str]) -> None:
         bbox_to_anchor=(0.5, -0.12),
     )
     fig.subplots_adjust(left=0.15, right=0.99, bottom=0.20, top=0.99)
-    fig.savefig(OUT / "h1_signal_state_timeseries_13_markets_fr.png", dpi=220, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "h1_signal_state_timeseries_13_markets_fr.png"), dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 

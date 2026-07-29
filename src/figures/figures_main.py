@@ -23,6 +23,7 @@ import pandas as pd
 
 from analysis import run_full_sample as R
 from engine import engine as E
+from figures.i18n import L, figpath, market_name
 from figures.plot_style import (
     BLUE,
     GOLD,
@@ -99,12 +100,12 @@ def signal_heatmap(results: dict[str, dict]) -> None:
         ],
     )
     ax.set_yticks(np.arange(len(order)))
-    ax.set_yticklabels([R.NAMES[m] for m in order])
+    ax.set_yticklabels([market_name(m, R.NAMES[m]) for m in order])
     ax.legend(
         handles=[
-            Patch(fc=BLUE, label="obligations"),
-            Patch(fc=GOLD, label="or"),
-            Patch(fc="#f2f2ef", label="hors fenêtre"),
+            Patch(fc=BLUE, label=L("obligations", "bonds")),
+            Patch(fc=GOLD, label=L("or", "gold")),
+            Patch(fc="#f2f2ef", label=L("hors fenêtre", "out of window")),
         ],
         loc="upper left",
         ncol=3,
@@ -123,7 +124,7 @@ def signal_heatmap(results: dict[str, dict]) -> None:
     lower.set_ylim(0, 1)
     lower.set_yticks([0, 0.5, 1])
     lower.set_yticklabels(["0", "50", "100"])
-    lower.set_ylabel(r"marchés en or (\%)", fontsize=9)
+    lower.set_ylabel(L(r"marchés en or (\%)", r"markets in gold (\%)"), fontsize=9)
     lower.xaxis.set_major_locator(mdates.YearLocator(10))
     lower.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     lower.grid(axis="y", color=GRID, lw=0.7)
@@ -132,7 +133,7 @@ def signal_heatmap(results: dict[str, dict]) -> None:
             axis.spines[spine].set_visible(False)
         axis.tick_params(length=0)
     fig.tight_layout()
-    fig.savefig(OUT / "currency_signal_heatmap_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "currency_signal_heatmap_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -162,7 +163,7 @@ def hypothesis_ladder() -> None:
             position,
             s=58,
             color=GREY,
-            label="meilleure référence" if position == y[0] else None,
+            label=L("meilleure référence", "best benchmark") if position == y[0] else None,
             zorder=3,
         )
         ax.scatter(
@@ -170,7 +171,7 @@ def hypothesis_ladder() -> None:
             position,
             s=60,
             color=BLUE,
-            label="bascule binaire" if position == y[0] else None,
+            label=L("bascule binaire", "binary switch") if position == y[0] else None,
             zorder=3,
         )
         ax.scatter(
@@ -178,19 +179,19 @@ def hypothesis_ladder() -> None:
             position,
             s=60,
             color=ORANGE,
-            label="variante graduée" if position == y[0] else None,
+            label=L("variante graduée", "graded variant") if position == y[0] else None,
             zorder=3,
         )
     ax.set_yticks(y)
-    ax.set_yticklabels([R.NAMES[m] for m in data["market"]])
-    ax.set_xlabel(r"ratio de Sharpe net")
+    ax.set_yticklabels([market_name(m, R.NAMES[m]) for m in data["market"]])
+    ax.set_xlabel(L(r"ratio de Sharpe net", r"net Sharpe ratio"))
     ax.legend(frameon=False, loc="lower right")
     ax.xaxis.grid(True, color=GRID, lw=0.7)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.tick_params(length=0)
     fig.tight_layout()
-    fig.savefig(OUT / "hypotheses_ladder_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "hypotheses_ladder_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -209,18 +210,37 @@ def jackknife() -> None:
         color=BLUE,
         alpha=0.08,
     )
-    ax.axvline(full, color=GREY, ls="--", lw=1.1, label=rf"échantillon complet ${full:+.3f}$")
+    ax.axvline(
+        full,
+        color=GREY,
+        ls="--",
+        lw=1.1,
+        label=L(rf"échantillon complet ${full:+.3f}$", rf"full sample ${full:+.3f}$"),
+    )
     ax.scatter(data["alpha_annualized"], y, color=BLUE, s=55, zorder=3)
     ax.set_yticks(y)
-    ax.set_yticklabels([rf"sans {R.NAMES[m]}" for m in data["omitted_market"]])
-    ax.set_xlabel(r"$\widehat{\alpha}$ ajusté du risque, annualisé")
+    ax.set_yticklabels(
+        [
+            L(
+                rf"sans {market_name(m, R.NAMES[m])}",
+                rf"without {market_name(m, R.NAMES[m])}",
+            )
+            for m in data["omitted_market"]
+        ]
+    )
+    ax.set_xlabel(
+        L(
+            r"$\widehat{\alpha}$ ajusté du risque, annualisé",
+            r"$\widehat{\alpha}$ risk-adjusted, annualized",
+        )
+    )
     ax.legend(frameon=False)
     ax.xaxis.grid(True, color=GRID, lw=0.7)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.tick_params(length=0)
     fig.tight_layout()
-    fig.savefig(OUT / "h1_jackknife_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "h1_jackknife_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -233,13 +253,16 @@ def risk_figure() -> None:
             axes[0],
             "vol_switch",
             "vol_6040",
-            r"volatilité annualisée des rendements excédentaires (\%)",
+            L(
+                r"volatilité annualisée des rendements excédentaires (\%)",
+                r"annualized volatility of excess returns (\%)",
+            ),
         ),
         (
             axes[1],
             "drawdown_switch",
             "drawdown_6040",
-            r"perte maximale (\%)",
+            L(r"perte maximale (\%)", r"maximum drawdown (\%)"),
         ),
     ):
         switch = data[switch_col].to_numpy(float) * 100
@@ -251,7 +274,7 @@ def risk_figure() -> None:
             y,
             color=GREY,
             s=52,
-            label="$60/40$ local",
+            label=L("$60/40$ local", "local $60/40$"),
             zorder=3,
         )
         ax.scatter(
@@ -259,7 +282,7 @@ def risk_figure() -> None:
             y,
             color=BLUE,
             s=52,
-            label="bascule binaire",
+            label=L("bascule binaire", "binary switch"),
             zorder=3,
         )
         ax.set_xlabel(xlabel)
@@ -268,10 +291,10 @@ def risk_figure() -> None:
             ax.spines[spine].set_visible(False)
         ax.tick_params(length=0)
     axes[0].set_yticks(y)
-    axes[0].set_yticklabels([R.NAMES[m] for m in data["market"]])
+    axes[0].set_yticklabels([market_name(m, R.NAMES[m]) for m in data["market"]])
     axes[1].legend(frameon=False, loc="lower right")
     fig.tight_layout()
-    fig.savefig(OUT / "h1_risk_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "h1_risk_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -279,9 +302,9 @@ def static_timing() -> None:
     data = pd.read_csv(OUT / "h1_static_timing.csv")
     labels = {
         "b6040": "$60/40$",
-        "pp": "permanent",
-        "matched": "statique comparable",
-        "strat": "bascule dynamique",
+        "pp": L("permanent", "permanent"),
+        "matched": L("statique comparable", "matched static"),
+        "strat": L("bascule dynamique", "dynamic switch"),
     }
     colours = {
         "b6040": GREY,
@@ -290,9 +313,9 @@ def static_timing() -> None:
         "strat": BLUE,
     }
     metrics = [
-        ("sharpe", r"ratio de Sharpe net"),
-        ("volatility", r"volatilité annualisée"),
-        ("max_drawdown", r"perte maximale"),
+        ("sharpe", L(r"ratio de Sharpe net", r"net Sharpe ratio")),
+        ("volatility", L(r"volatilité annualisée", r"annualized volatility")),
+        ("max_drawdown", L(r"perte maximale", r"maximum drawdown")),
     ]
     methods = ["b6040", "pp", "matched", "strat"]
     fig, axes = plt.subplots(1, 3, figsize=(12.7, 5.7))
@@ -325,7 +348,7 @@ def static_timing() -> None:
             ax.spines[spine].set_visible(False)
         ax.tick_params(length=0)
     fig.tight_layout()
-    fig.savefig(OUT / "h1_static_timing_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "h1_static_timing_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -347,7 +370,7 @@ def wealth_figures(results: dict[str, dict]) -> None:
             switch_w,
             color=BLUE,
             lw=1.4,
-            label="bascule",
+            label=L("bascule", "switch"),
         )
         ax.plot(
             bench_w.index.to_timestamp(),
@@ -360,7 +383,7 @@ def wealth_figures(results: dict[str, dict]) -> None:
         ax.text(
             0.03,
             0.95,
-            R.NAMES[market],
+            market_name(market, R.NAMES[market]),
             transform=ax.transAxes,
             ha="left",
             va="top",
@@ -380,7 +403,7 @@ def wealth_figures(results: dict[str, dict]) -> None:
             bbox_to_anchor=(0.96, 0.08),
         )
     fig.tight_layout()
-    fig.savefig(OUT / "h1_wealth_13_markets.png", dpi=180, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "h1_wealth_13_markets.png"), dpi=180, bbox_inches="tight")
     plt.close(fig)
 
     fig, axes = plt.subplots(4, 4, figsize=(13.2, 10.8))
@@ -409,7 +432,7 @@ def wealth_figures(results: dict[str, dict]) -> None:
         ax.text(
             0.03,
             0.95,
-            rf"{R.NAMES[market]} \quad ${ratio.iloc[-1]:.2f}$",
+            rf"{market_name(market, R.NAMES[market])} \quad ${ratio.iloc[-1]:.2f}$",
             transform=ax.transAxes,
             ha="left",
             va="top",
@@ -420,15 +443,15 @@ def wealth_figures(results: dict[str, dict]) -> None:
     for ax in axes.ravel()[len(order) :]:
         ax.axis("off")
     fig.tight_layout()
-    fig.savefig(OUT / "h1_relative_wealth_13_markets.png", dpi=180, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "h1_relative_wealth_13_markets.png"), dpi=180, bbox_inches="tight")
     plt.close(fig)
 
 
 def era_figure(results: dict[str, dict]) -> None:
     groups = [
-        ("fondateurs de l'euro", BLUE, ["DEU", "FRA", "ESP", "NLD", "BEL"]),
-        ("flottants européens", ORANGE, ["CHE", "GBR", "NOR"]),
-        ("hors Europe", PURPLE, ["USA", "CAN", "AUS", "JPN", "ZAF"]),
+        (L("fondateurs de l'euro", "euro founders"), BLUE, ["DEU", "FRA", "ESP", "NLD", "BEL"]),
+        (L("flottants européens", "European floaters"), ORANGE, ["CHE", "GBR", "NOR"]),
+        (L("hors Europe", "non-Europe"), PURPLE, ["USA", "CAN", "AUS", "JPN", "ZAF"]),
     ]
     rows = []
     for group, colour, markets in groups:
@@ -481,19 +504,24 @@ def era_figure(results: dict[str, dict]) -> None:
                 lw=1.6,
                 zorder=3,
             )
-            positions.append((current, R.NAMES[row["market"]]))
+            positions.append((current, market_name(row["market"], R.NAMES[row["market"]])))
             current -= 1
         current -= 1
     ax.axvline(0, color=INK, lw=0.8)
     ax.set_yticks([position for position, _ in positions])
     ax.set_yticklabels([label for _, label in positions])
-    ax.set_xlabel(r"avantage de Sharpe net sur la meilleure référence")
+    ax.set_xlabel(
+        L(
+            r"avantage de Sharpe net sur la meilleure référence",
+            r"net Sharpe advantage over the best benchmark",
+        )
+    )
     handles = [
         Line2D([], [], marker="o", ls="", color=colour, label=group)
         for group, colour, _ in groups
     ]
     handles += [
-        Line2D([], [], marker="o", ls="", color=INK, label="avant 1999"),
+        Line2D([], [], marker="o", ls="", color=INK, label=L("avant 1999", "before 1999")),
         Line2D(
             [],
             [],
@@ -501,7 +529,7 @@ def era_figure(results: dict[str, dict]) -> None:
             ls="",
             color=INK,
             markerfacecolor=SURFACE,
-            label="après 1999",
+            label=L("après 1999", "after 1999"),
         ),
     ]
     ax.legend(
@@ -515,7 +543,7 @@ def era_figure(results: dict[str, dict]) -> None:
         ax.spines[spine].set_visible(False)
     ax.tick_params(length=0)
     fig.tight_layout(rect=(0, 0, 0.80, 1))
-    fig.savefig(OUT / "era_1999_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "era_1999_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -528,14 +556,14 @@ def sensitivity() -> None:
             axes[0],
             costs["cost_oneway"].to_numpy() * 10000,
             costs,
-            r"coût aller simple (points de base)",
+            L(r"coût aller simple (points de base)", r"one-way cost (basis points)"),
             40,
         ),
         (
             axes[1],
             windows["window_months"].to_numpy(),
             windows,
-            r"fenêtre du signal (mois)",
+            L(r"fenêtre du signal (mois)", r"signal window (months)"),
             84,
         ),
     ]
@@ -546,12 +574,12 @@ def sensitivity() -> None:
             color=BLUE,
             marker="o",
             lw=1.7,
-            label="avantage médian",
+            label=L("avantage médian", "median advantage"),
         )
         ax.axhline(0, color=INK, lw=0.7)
         ax.axvline(primary, color=GREY, ls=":", lw=0.9)
         ax.set_xlabel(xlabel)
-        ax.set_ylabel(r"avantage de Sharpe net médian", color=BLUE)
+        ax.set_ylabel(L(r"avantage de Sharpe net médian", r"median net Sharpe advantage"), color=BLUE)
         ax.tick_params(axis="y", colors=BLUE)
         ax.grid(axis="y", color=GRID, lw=0.7)
         other = ax.twinx()
@@ -562,20 +590,20 @@ def sensitivity() -> None:
             marker="s",
             ls="--",
             lw=1.3,
-            label="marchés positifs",
+            label=L("marchés positifs", "positive markets"),
         )
         other.set_ylim(0, 13.5)
         other.set_yticks([0, 4, 8, 12, 13])
-        other.set_ylabel(r"nombre de marchés positifs", color=GOLD)
+        other.set_ylabel(L(r"nombre de marchés positifs", r"number of positive markets"), color=GOLD)
         other.tick_params(axis="y", colors=GOLD)
         for spine in ("top",):
             ax.spines[spine].set_visible(False)
             other.spines[spine].set_visible(False)
     fig.legend(
         handles=[
-            Line2D([], [], color=BLUE, marker="o", label="avantage médian"),
-            Line2D([], [], color=GOLD, marker="s", ls="--", label="marchés positifs"),
-            Line2D([], [], color=GREY, ls=":", label="spécification principale"),
+            Line2D([], [], color=BLUE, marker="o", label=L("avantage médian", "median advantage")),
+            Line2D([], [], color=GOLD, marker="s", ls="--", label=L("marchés positifs", "positive markets")),
+            Line2D([], [], color=GREY, ls=":", label=L("spécification principale", "main specification")),
         ],
         frameon=False,
         loc="upper center",
@@ -583,7 +611,7 @@ def sensitivity() -> None:
         bbox_to_anchor=(0.5, 1.03),
     )
     fig.tight_layout(rect=(0, 0, 1, 0.93))
-    fig.savefig(OUT / "h1_cost_window_sensitivity_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(figpath(OUT / "h1_cost_window_sensitivity_13_markets.png"), dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 

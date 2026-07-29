@@ -39,6 +39,7 @@ from common.paths import FULL_SAMPLE_RESULTS, RECON_DATA, REPO_ROOT
 from data.treasury_total_return import construct_monthly_tr
 from engine import engine as E
 from engine import market_wiring as P
+from figures.i18n import L, figpath, market_name
 from figures.plot_style import BLUE, GOLD, GREY, GRID, INK, ORANGE, RED
 
 RECON = RECON_DATA
@@ -983,17 +984,25 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
         ax.scatter(row.advantage, yi, s=48, color=colour, zorder=3)
     ax.axvline(0, color=INK, lw=0.8)
     ax.set_yticks(y)
-    ax.set_yticklabels([NAMES[m] for m in d["market"]])
+    ax.set_yticklabels([market_name(m, NAMES[m]) for m in d["market"]])
     ax.set_xlabel(
-        r"$\mathrm{SR}_{\mathrm{bascule}}"
-        r"-\max(\mathrm{SR}_{60/40},\mathrm{SR}_{\mathrm{permanent}})$"
+        L(
+            r"$\mathrm{SR}_{\mathrm{bascule}}"
+            r"-\max(\mathrm{SR}_{60/40},\mathrm{SR}_{\mathrm{permanent}})$",
+            r"$\mathrm{SR}_{\mathrm{switch}}"
+            r"-\max(\mathrm{SR}_{60/40},\mathrm{SR}_{\mathrm{permanent}})$",
+        )
     )
     ax.xaxis.grid(True, color=GRID, lw=0.7)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.tick_params(length=0)
     fig.tight_layout()
-    fig.savefig(OUT / "h1_advantage_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(
+        figpath(OUT / "h1_advantage_13_markets.png"),
+        dpi=200,
+        bbox_inches="tight",
+    )
     plt.close(fig)
 
     # H2 four-arm decomposition, all 13 countries.
@@ -1001,10 +1010,13 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
     fig, ax = plt.subplots(figsize=(10.2, 7.3))
     y = np.arange(len(d))[::-1]
     labels = {
-        "sharpe_6040": r"$60/40$ local",
-        "sharpe_energy_static": r"énergie statique",
-        "sharpe_currency_only": r"bascule monétaire",
-        "sharpe_currency_energy": r"bascule monétaire $+$ énergie",
+        "sharpe_6040": L(r"$60/40$ local", r"local $60/40$"),
+        "sharpe_energy_static": L(r"énergie statique", r"static energy"),
+        "sharpe_currency_only": L(r"bascule monétaire", r"monetary switch"),
+        "sharpe_currency_energy": L(
+            r"bascule monétaire $+$ énergie",
+            r"monetary switch $+$ energy",
+        ),
     }
     colours = {
         "sharpe_6040": GREY,
@@ -1031,15 +1043,19 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
                 label=labels[key] if position == y[0] else None,
             )
     ax.set_yticks(y)
-    ax.set_yticklabels([NAMES[m] for m in d["market"]])
-    ax.set_xlabel(r"ratio de Sharpe net")
+    ax.set_yticklabels([market_name(m, NAMES[m]) for m in d["market"]])
+    ax.set_xlabel(L(r"ratio de Sharpe net", r"net Sharpe ratio"))
     ax.legend(frameon=False, loc="center left", bbox_to_anchor=(1.01, 0.5))
     ax.xaxis.grid(True, color=GRID, lw=0.7)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.tick_params(length=0)
     fig.tight_layout(rect=(0, 0, 0.78, 1))
-    fig.savefig(OUT / "h2_decomposition_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(
+        figpath(OUT / "h2_decomposition_13_markets.png"),
+        dpi=200,
+        bbox_inches="tight",
+    )
     plt.close(fig)
 
     # H2 exposure gradient.
@@ -1055,7 +1071,10 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
         color=GREY,
         lw=1.3,
         ls="--",
-        label=rf"$\widehat{{\beta}}={slope:+.4f}$ par rang",
+        label=L(
+            rf"$\widehat{{\beta}}={slope:+.4f}$ par rang",
+            rf"$\widehat{{\beta}}={slope:+.4f}$ per rank",
+        ),
     )
     ax.scatter(x, yv, color=BLUE, s=58, zorder=3)
     for row in h2.itertuples():
@@ -1066,18 +1085,32 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
             textcoords="offset points",
             fontsize=8.5,
         )
-    ax.set_xlabel(r"$E_i$ : rang moyen d'exposition énergétique en 2021")
+    ax.set_xlabel(
+        L(
+            r"$E_i$ : rang moyen d'exposition énergétique en 2021",
+            r"$E_i$: mean energy-exposure rank in 2021",
+        )
+    )
     ax.set_ylabel(
-        r"$A_i^{\mathrm{aug}}"
-        r"=\mathrm{SR}_{\mathrm{monetaire+energie}}"
-        r"-\mathrm{SR}_{\mathrm{monetaire}}$"
+        L(
+            r"$A_i^{\mathrm{aug}}"
+            r"=\mathrm{SR}_{\mathrm{monetaire+energie}}"
+            r"-\mathrm{SR}_{\mathrm{monetaire}}$",
+            r"$A_i^{\mathrm{aug}}"
+            r"=\mathrm{SR}_{\mathrm{monetary+energy}}"
+            r"-\mathrm{SR}_{\mathrm{monetary}}$",
+        )
     )
     ax.legend(frameon=False, loc="best")
     ax.grid(True, color=GRID, lw=0.7)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
     fig.tight_layout()
-    fig.savefig(OUT / "h2_exposure_gradient_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(
+        figpath(OUT / "h2_exposure_gradient_13_markets.png"),
+        dpi=200,
+        bbox_inches="tight",
+    )
     plt.close(fig)
 
     # H3 dumbbell.
@@ -1097,7 +1130,7 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
             position,
             s=58,
             color=BLUE,
-            label="binaire" if position == y[0] else None,
+            label=(L("binaire", "binary") if position == y[0] else None),
             zorder=3,
         )
         ax.scatter(
@@ -1105,19 +1138,23 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
             position,
             s=58,
             color=ORANGE,
-            label="graduée" if position == y[0] else None,
+            label=(L("graduée", "graded") if position == y[0] else None),
             zorder=3,
         )
     ax.set_yticks(y)
-    ax.set_yticklabels([NAMES[m] for m in d["market"]])
-    ax.set_xlabel(r"ratio de Sharpe net")
+    ax.set_yticklabels([market_name(m, NAMES[m]) for m in d["market"]])
+    ax.set_xlabel(L(r"ratio de Sharpe net", r"net Sharpe ratio"))
     ax.legend(frameon=False)
     ax.xaxis.grid(True, color=GRID, lw=0.7)
     for spine in ("top", "right", "left"):
         ax.spines[spine].set_visible(False)
     ax.tick_params(length=0)
     fig.tight_layout()
-    fig.savefig(OUT / "h3_binary_amplitude_13_markets.png", dpi=200, bbox_inches="tight")
+    fig.savefig(
+        figpath(OUT / "h3_binary_amplitude_13_markets.png"),
+        dpi=200,
+        bbox_inches="tight",
+    )
     plt.close(fig)
 
 

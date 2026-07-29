@@ -33,6 +33,7 @@ from scipy.stats import norm
 
 from analysis import run_full_sample as R
 from engine import engine as E
+from figures.i18n import L, figpath, market_name
 from figures.plot_style import (
     BLUE,
     GREY,
@@ -543,7 +544,7 @@ def figure_a(alpha: pd.DataFrame) -> None:
         )
 
     labels = [
-        R.NAMES[market]
+        market_name(market, R.NAMES[market])
         + (r"$^{\dagger}$" if int(
             pivot.loc[market, ("observations", "before_2000")]
         ) < 60 else "")
@@ -553,27 +554,33 @@ def figure_a(alpha: pd.DataFrame) -> None:
     ax.set_yticks(y)
     ax.set_yticklabels(labels)
     ax.set_xlabel(
-        r"avantage H1 ajusté du risque (ratio de Sharpe annualisé)"
+        L(
+            r"avantage H1 ajusté du risque (ratio de Sharpe annualisé)",
+            r"H1 risk-adjusted advantage (annualized Sharpe ratio)",
+        )
     )
     ax.xaxis.grid(True, color=GRID, lw=0.7)
     ax.legend(
         handles=[
             Line2D(
                 [], [], marker="o", ls="", color=BLUE,
-                label=r"avant janvier 2000",
+                label=L(r"avant janvier 2000", r"before January 2000"),
             ),
             Line2D(
                 [], [], marker="o", ls="", color=BLUE,
                 markerfacecolor=SURFACE,
-                label=r"depuis janvier 2000",
+                label=L(r"depuis janvier 2000", r"since January 2000"),
             ),
             Line2D(
                 [], [], color=ORANGE, lw=2,
-                label=r"États-Unis et Canada",
+                label=L(r"États-Unis et Canada", r"United States and Canada"),
             ),
             Line2D(
                 [], [], color=GREY, lw=2,
-                label=r"$\dagger$ moins de 60 mois avant 2000",
+                label=L(
+                    r"$\dagger$ moins de 60 mois avant 2000",
+                    r"$\dagger$ fewer than 60 months before 2000",
+                ),
             ),
         ],
         frameon=False,
@@ -583,7 +590,7 @@ def figure_a(alpha: pd.DataFrame) -> None:
         ax.spines[spine].set_visible(False)
     ax.tick_params(axis="y", length=0)
     fig.tight_layout()
-    fig.savefig(OUT / FIGURE_A_NAME, dpi=220, bbox_inches="tight")
+    fig.savefig(figpath(OUT / FIGURE_A_NAME), dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -611,13 +618,16 @@ def figure_b(summary: pd.DataFrame) -> None:
         (
             axes[0],
             "bond_state_share",
-            r"part des mois en état obligataire",
+            L(
+                r"part des mois en état obligataire",
+                r"share of months in the bond state",
+            ),
             (-0.03, 1.03),
         ),
         (
             axes[1],
             "transitions_annualized",
-            r"transitions d'état par an",
+            L(r"transitions d'état par an", r"state transitions per year"),
             None,
         ),
     ]
@@ -647,7 +657,7 @@ def figure_b(summary: pd.DataFrame) -> None:
         ax.tick_params(axis="y", length=0)
 
     labels = [
-        R.NAMES[market]
+        market_name(market, R.NAMES[market])
         + (
             r"$^{\dagger}$"
             if int(shares.loc[market, ("observations", "before_2000")]) < 60
@@ -661,16 +671,19 @@ def figure_b(summary: pd.DataFrame) -> None:
         handles=[
             Line2D(
                 [], [], marker="o", ls="", color=BLUE,
-                label=r"avant janvier 2000",
+                label=L(r"avant janvier 2000", r"before January 2000"),
             ),
             Line2D(
                 [], [], marker="o", ls="", color=ORANGE,
                 markerfacecolor=SURFACE,
-                label=r"depuis janvier 2000",
+                label=L(r"depuis janvier 2000", r"since January 2000"),
             ),
             Line2D(
                 [], [], color=GREY, lw=2,
-                label=r"$\dagger$ moins de 60 mois",
+                label=L(
+                    r"$\dagger$ moins de 60 mois",
+                    r"$\dagger$ fewer than 60 months",
+                ),
             ),
         ],
         frameon=False,
@@ -683,7 +696,7 @@ def figure_b(summary: pd.DataFrame) -> None:
         top=0.99,
         wspace=0.10,
     )
-    fig.savefig(OUT / FIGURE_B_NAME, dpi=220, bbox_inches="tight")
+    fig.savefig(figpath(OUT / FIGURE_B_NAME), dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -735,12 +748,12 @@ def figure_c(monthly: pd.DataFrame) -> None:
         zorder=3,
     )
     ax.set_yticks(np.arange(len(order)) + 0.5)
-    ax.set_yticklabels([R.NAMES[market] for market in order])
+    ax.set_yticklabels([market_name(market, R.NAMES[market]) for market in order])
     ax.invert_yaxis()
     ax.set_xlim(month_starts[0], right_edge)
     ax.xaxis.set_major_locator(mdates.YearLocator(10))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    ax.set_xlabel(r"mois")
+    ax.set_xlabel(L(r"mois", r"month"))
     ax.set_axisbelow(False)
     for boundary in range(1, len(order)):
         ax.axhline(boundary, color=SURFACE, lw=1.0, zorder=2)
@@ -749,11 +762,17 @@ def figure_c(monthly: pd.DataFrame) -> None:
     ax.tick_params(axis="y", length=0)
     ax.legend(
         handles=[
-            Patch(facecolor=BLUE, edgecolor="none", label=r"état obligations"),
-            Patch(facecolor=ORANGE, edgecolor="none", label=r"état or"),
+            Patch(
+                facecolor=BLUE, edgecolor="none",
+                label=L(r"état obligations", r"bond state"),
+            ),
+            Patch(
+                facecolor=ORANGE, edgecolor="none",
+                label=L(r"état or", r"gold state"),
+            ),
             Line2D(
                 [], [], color=INK, lw=1.1, ls=(0, (4, 3)),
-                label=r"janvier 2000",
+                label=L(r"janvier 2000", r"January 2000"),
             ),
         ],
         frameon=False,
@@ -767,7 +786,7 @@ def figure_c(monthly: pd.DataFrame) -> None:
         bottom=0.20,
         top=0.99,
     )
-    fig.savefig(OUT / FIGURE_C_NAME, dpi=220, bbox_inches="tight")
+    fig.savefig(figpath(OUT / FIGURE_C_NAME), dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -859,9 +878,9 @@ def figure_d(rolling: pd.DataFrame) -> None:
             zorder=0,
         )
         label = (
-            r"Moyenne équipondérée"
+            L(r"Moyenne équipondérée", r"Equal-weighted average")
             if is_aggregate
-            else R.NAMES[market]
+            else market_name(market, R.NAMES[market])
         )
         ax.text(
             0.01,
@@ -886,9 +905,12 @@ def figure_d(rolling: pd.DataFrame) -> None:
     axes[-1].set_xlim(x_min, x_max)
     axes[-1].xaxis.set_major_locator(mdates.YearLocator(10))
     axes[-1].xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    axes[-1].set_xlabel(r"mois")
+    axes[-1].set_xlabel(L(r"mois", r"month"))
     fig.supylabel(
-        r"alpha H1 mobile, ratio de Sharpe annualisé",
+        L(
+            r"alpha H1 mobile, ratio de Sharpe annualisé",
+            r"rolling H1 alpha, annualized Sharpe ratio",
+        ),
         x=0.005,
         fontsize=10,
     )
@@ -896,15 +918,15 @@ def figure_d(rolling: pd.DataFrame) -> None:
         handles=[
             Line2D(
                 [], [], color=BLUE, lw=1.8,
-                label=r"moyenne équipondérée",
+                label=L(r"moyenne équipondérée", r"equal-weighted average"),
             ),
             Line2D(
                 [], [], color=INK, lw=1.0,
-                label=r"pays",
+                label=L(r"pays", r"country"),
             ),
             Line2D(
                 [], [], color=ORANGE, lw=0.8, ls=(0, (4, 3)),
-                label=r"janvier 2000",
+                label=L(r"janvier 2000", r"January 2000"),
             ),
         ],
         frameon=False,
@@ -919,7 +941,7 @@ def figure_d(rolling: pd.DataFrame) -> None:
         bottom=0.09,
         top=0.995,
     )
-    fig.savefig(OUT / FIGURE_D_NAME, dpi=220, bbox_inches="tight")
+    fig.savefig(figpath(OUT / FIGURE_D_NAME), dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 

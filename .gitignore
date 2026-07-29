@@ -22,6 +22,10 @@ venv/
 # --- Pre-publication exploratory workspace (canonical code is under src/) ---
 /tooling/
 
+# --- Frozen pre-registration records (gate/freeze framing; superseded by the
+#     full-sample methodology of the paper — kept locally, not published) ---
+/protocol/
+
 # --- LaTeX build artifacts (the .tex and .pdf are kept) ---
 paper/*.aux
 paper/*.log
@@ -71,10 +75,7 @@ paper/spec-tables-annexe-codex-fr.md
 # --- Abandoned twenty-market results (not used in the paper) ---
 /results/complete-sample-20-markets-*/
 
-# Only the French manuscript is published (English and prior-paper drafts excluded)
-/paper/bonds-or-gold.tex
-/paper/bonds-or-gold.pdf
-/paper/four-quadrants.tex
-/paper/four-quadrants.pdf
+# Superseded manuscripts kept only as local archive (prior English + prior-paper drafts)
+/paper/archive/
 /paper/outline.md
 /paper/paper-structure.md

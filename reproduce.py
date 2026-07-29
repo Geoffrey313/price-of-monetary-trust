@@ -92,9 +92,24 @@ def main(argv: list[str] | None = None) -> int:
     run_step("era timing", "analysis.era_timing")
     run_step("main paper figures", "figures.figures_main")
     run_step("state figures", "figures.figures_state")
+    run_step("inflation-state figure", "figures.figure_signal_inflation")
+    run_step("H3 relative-wealth figure", "figures.figure_h3_wealth")
     run_step("macroeconomic controls", "analysis.macro_controls")
     run_step("appendix tables", "figures.appendix_tables")
+    run_step("provenance table", "figures.provenance_table")
     run_step("supply-shock IRF (US complement)", "analysis.supply_shock_irf")
+    # Referee-report robustness suite (report 1, block 1). The allocation-overview
+    # figure is deliberately NOT reproduced here: it plots prior-study constants as
+    # an explicit contextual reference, outside this paper's inference.
+    run_step("US gold-parity robustness", "analysis.us_gold_parity_robustness")
+    run_step("per-benchmark advantages", "analysis.per_benchmark_advantage")
+    run_step("FX-hedged gold robustness", "analysis.fx_hedged_gold")
+    run_step("H2 uniform-cost robustness", "analysis.h2_uniform_cost")
+    run_step("H2 gradient HC3 inference", "analysis.h2_gradient_hc3")
+    run_step("H3 mapping family", "analysis.h3_mapping_family")
+    run_step("predictive mechanism check", "analysis.mechanism_predictive")
+    run_step("by-state real returns", "analysis.by_state_real_returns")
+    run_step("turnover and breakeven", "analysis.turnover_breakeven")
 
     after = file_hashes()
     changed = [] if args.no_hash_check else compare_existing(before, after)
