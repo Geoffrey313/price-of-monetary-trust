@@ -44,20 +44,23 @@ cost assumptions everywhere.
 
 ## Main results
 
-* The monetary axis survives. The rule beats the binding benchmark in twelve of
-  thirteen markets, with a median net Sharpe advantage of 0.143. The pooled
-  risk-adjusted estimate is 0.086, significant at the one-sided ten percent level
-  under a covariance that treats cross-market and serial dependence together.
+* The monetary axis survives in the full sample. The rule beats the binding
+  benchmark in twelve of thirteen markets, with a median net Sharpe advantage of
+  0.143. The pooled risk-adjusted estimate is 0.086, significant at the one-sided
+  ten percent level under a covariance that treats cross-market and serial
+  dependence together; the direct difference of conventional Sharpe ratios is 0.122.
 * The energy substitution lowers the net Sharpe in eleven of thirteen markets.
   The energy axis does not carry the information the framework claims for it.
 * The surviving rule is binary. The graded variant loses in all thirteen markets.
 * The advantage is concentrated before 2000. The pooled alpha moves from 0.317
   before 2000 to minus 0.019 after. This split is descriptive and carries no
-  causal claim.
+  causal claim. In the modern sample, with a freely floating and investable gold,
+  the advantage is essentially zero, so the rule's value in the modern tradeable
+  regime is not established.
 
 Put together, the four-quadrant framework reduces to a single binary monetary
-switch between bonds and gold, held inside an otherwise static equal-weight
-portfolio.
+switch between bonds and gold, real in the full sample but carried by the
+pre-float gold regime, held inside an otherwise static equal-weight portfolio.
 
 ## Repository layout
 
@@ -87,6 +90,17 @@ data/README.md where to place licensed and downloaded inputs (the data is not sh
 Use `python reproduce.py --refresh-fred` only when intentionally refreshing the
 public FRED snapshots. Direct module commands use `PYTHONPATH=src`, for example
 `PYTHONPATH=src python -m analysis.run_full_sample`.
+
+To reproduce without WRDS access, first build the derived layer once with
+credentials in place, then run offline against it:
+
+```
+PYTHONPATH=src python -m engine.derived_inputs   # writes data/derived/*.parquet
+python reproduce.py --from-derived               # rebuilds results without WRDS
+```
+
+The derived layer is not shipped (it is downstream of licensed reconstructions
+and `data/` is git-ignored); see `data/README.md`.
 
 ## Data and credentials
 

@@ -44,18 +44,73 @@ def compare_existing(
     return sorted(path for path, digest in before.items() if after.get(path) != digest)
 
 
-def run_step(label: str, module: str, *arguments: str) -> None:
+def file_mtimes() -> dict[Path, float]:
+    """Record the modification time of every existing published output."""
+    roots = (RESULTS_ROOT, PAPER_GENERATED)
+    return {
+        path.relative_to(REPO_ROOT): path.stat().st_mtime
+        for root in roots
+        if root.exists()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+
+
+NUMERIC_OUTPUT_SUFFIXES = (".csv", ".json", ".tex")
+
+
+def not_regenerated(
+    before: dict[Path, float],
+    after: dict[Path, float],
+) -> list[Path]:
+    """Pre-existing numeric outputs the rerun never rewrote (candidate orphans).
+
+    A data file whose modification time is unchanged was not produced by any
+    step, so its published values are not backed by the reproduction chain. The
+    check is limited to numeric outputs; figures and working notes under
+    ``results/`` are not part of the deterministic chain.
+    """
+    return sorted(
+        path
+        for path, mtime in before.items()
+        if path.suffix in NUMERIC_OUTPUT_SUFFIXES
+        and path in after
+        and after[path] == mtime
+    )
+
+
+def run_step(
+    label: str,
+    module: str,
+    *arguments: str,
+    env: dict[str, str] | None = None,
+) -> None:
     """Run one stage in a fresh process so engine wiring cannot leak."""
     print(f"\n=== {label} ===", flush=True)
     environment = os.environ.copy()
     environment["PYTHONPATH"] = str(SRC_ROOT)
     environment.setdefault("MPLCONFIGDIR", "/tmp/four-quadrant-matplotlib")
+    if env:
+        environment.update(env)
     subprocess.run(
         [sys.executable, "-m", module, *arguments],
         cwd=REPO_ROOT,
         env=environment,
         check=True,
     )
+
+
+# Steps whose output text and file names depend on the manuscript language. Run
+# once per language so both the French and the English generated fragments and
+# figures are reproduced.
+LANGUAGE_VARIANT_STEPS = (
+    ("main paper figures", "figures.figures_main"),
+    ("state figures", "figures.figures_state"),
+    ("inflation-state figure", "figures.figure_signal_inflation"),
+    ("H3 relative-wealth figure", "figures.figure_h3_wealth"),
+    ("appendix tables", "figures.appendix_tables"),
+    ("provenance table", "figures.provenance_table"),
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -78,16 +133,21 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.from_derived:
-        import os
-
         os.environ["FOUR_QUADRANT_FROM_DERIVED"] = "1"
 
     before = file_hashes()
+    before_mtimes = file_mtimes()
     refresh = ("--refresh-fred",) if args.refresh_fred else ()
     if not args.from_derived:
         run_step("data fetch and input preflight", "data.fetch_inputs", *refresh)
     run_step("full-sample H1--H3", "analysis.run_full_sample")
+    run_step("inference corrections (Holm, joint dependence, H3 reverse, RDD)", "analysis.inference_corrections")
     run_step("era and state analysis", "analysis.era_state")
+    # Reads the monthly signal states written by era_state; must precede the
+    # inflation-state figure and the predictive mechanism check, which read its
+    # inflation joint-inference output.
+    run_step("supplementary inference (direct Sharpe, static era, reselection)", "analysis.supplementary_inference")
+    run_step("signal calendar counterfactuals", "analysis.signal_calendar_counterfactuals")
     run_step("post-2000 panel", "analysis.post_2000_panel")
     run_step("era timing", "analysis.era_timing")
     run_step("main paper figures", "figures.figures_main")
@@ -105,13 +165,29 @@ def main(argv: list[str] | None = None) -> int:
     run_step("per-benchmark advantages", "analysis.per_benchmark_advantage")
     run_step("FX-hedged gold robustness", "analysis.fx_hedged_gold")
     run_step("H2 uniform-cost robustness", "analysis.h2_uniform_cost")
+    run_step("H2 robust regression and benchmark selection", "analysis.h2_robustness")
     run_step("H2 gradient HC3 inference", "analysis.h2_gradient_hc3")
     run_step("H3 mapping family", "analysis.h3_mapping_family")
     run_step("predictive mechanism check", "analysis.mechanism_predictive")
     run_step("by-state real returns", "analysis.by_state_real_returns")
     run_step("turnover and breakeven", "analysis.turnover_breakeven")
 
+    # The steps above build the French figures and fragments (the default
+    # language). Regenerate their English variants so the English manuscript is
+    # reproduced too; the underlying numbers are identical, only the on-figure and
+    # caption text differ.
+    for label, module in LANGUAGE_VARIANT_STEPS:
+        run_step(f"{label} [en]", module, env={"FOUR_QUADRANT_FIG_LANG": "en"})
+
     after = file_hashes()
+    stale = not_regenerated(before_mtimes, file_mtimes())
+    if stale:
+        print(
+            "\nWarning: pre-existing outputs not rewritten by this run "
+            "(no generating step; verify they are not orphaned):"
+        )
+        for path in stale:
+            print(f"  - {path}")
     changed = [] if args.no_hash_check else compare_existing(before, after)
     if changed:
         print("\nReproduction hash check failed; pre-existing outputs changed:")

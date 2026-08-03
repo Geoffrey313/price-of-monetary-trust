@@ -1,9 +1,9 @@
-"""Reproduce the thirteen-market inputs from the committed derived layer.
+"""Reproduce the thirteen-market inputs from a locally built derived layer.
 
 Inputs: ``data/derived/{market}.parquet`` (one file per market, monthly).
 Outputs: none; installs the per-market loaders on the in-memory engine.
 Purpose: let the full pipeline reproduce H1-H3, the era analyses and the figures
-without any licensed WRDS access.
+without any licensed WRDS access, once the derived layer has been built.
 
 Each derived file holds five monthly series: the aggregated cap-weighted equity
 total return (``eq``), the long government yield, gold in local currency, the
@@ -12,7 +12,11 @@ it is a market-level aggregate, never firm-level records. The other four are
 public (FRED and a public gold series). Running from this layer bypasses
 ``equity_reconstruction`` entirely.
 
-Regenerate the layer with ``PYTHONPATH=src python -m engine.derived_inputs``.
+The derived layer is not shipped in the repository: it is downstream of licensed
+WRDS/CRSP/Compustat reconstructions, and ``data/`` is excluded from version
+control. Build it once, with WRDS access, via
+``PYTHONPATH=src python -m engine.derived_inputs``; afterwards
+``reproduce.py --from-derived`` runs without WRDS. See ``data/README.md``.
 """
 from __future__ import annotations
 

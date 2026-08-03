@@ -20,6 +20,7 @@ Outputs are written below:
 """
 from __future__ import annotations
 
+import itertools
 import json
 from math import erf, sqrt
 
@@ -33,7 +34,13 @@ import statsmodels.api as sm
 from scipy.stats import binomtest, spearmanr
 
 from analysis import euro_experiment as EU
-from analysis.h3_variant import lw_test, run_variant, series_for
+from analysis.h3_variant import (
+    lw_test,
+    pooled_calendar_block_bootstrap,
+    pooled_calendar_hac,
+    run_variant,
+    series_for,
+)
 from common.names import EURO, MARKETS, NAMES
 from common.paths import FULL_SAMPLE_RESULTS, RECON_DATA, REPO_ROOT
 from data.treasury_total_return import construct_monthly_tr
@@ -148,7 +155,15 @@ def phi(x: float) -> float:
 
 
 def panel_resampling(panel: pd.DataFrame) -> tuple[float, float]:
-    """Few-country inference, implemented in vectorised chunks."""
+    """Few-country inference: a wild country-cluster bootstrap for the t statistic,
+    and an exhaustive country sign-flip permutation for the mean.
+
+    With a handful of markets the sign-flip null is small enough to enumerate in
+    full, so the permutation p value is exact (the fraction of the ``2**k`` sign
+    assignments whose mean is at least the observed one) rather than a Monte Carlo
+    estimate. The wild bootstrap for the studentised statistic stays a draw of
+    ``NBOOT_PANEL`` Rademacher patterns, seeded for determinism.
+    """
     z = panel["z"].to_numpy(float)
     mu, _, t_obs = cluster_t(panel, "z")
     markets = sorted(panel["market"].unique())
@@ -166,19 +181,27 @@ def panel_resampling(panel: pd.DataFrame) -> tuple[float, float]:
     country_resid = np.bincount(mcode, weights=resid, minlength=k)
     month_n = np.bincount(tcode, minlength=tt)
 
+    # Exhaustive country sign-flip permutation of the uncentred series: every one of
+    # the 2**k sign assignments is evaluated, so the one-sided p value is exact.
+    # The all-ones assignment reproduces the observed mean and is a mathematical tie
+    # at the threshold; because the permuted mean and ``mu`` are summed in different
+    # orders, that tie sits within one unit in the last place of the comparison, so a
+    # small tolerance keeps the count stable (the nearest genuine pattern is order
+    # 1e-4 away).
+    if k > 22:
+        raise ValueError(f"exhaustive sign-flip is infeasible for k={k} markets")
+    sign_patterns = np.array(list(itertools.product((-1.0, 1.0), repeat=k)))
+    perm_means = sign_patterns @ country_z / n
+    tie_tolerance = 1e-9
+    p_perm = float(np.mean(perm_means >= mu - tie_tolerance))
+
+    # Wild country-cluster bootstrap under H0, studentised by months.
     rng = np.random.default_rng(SEED)
     wild_count = 0
-    perm_count = 0
     done = 0
     while done < NBOOT_PANEL:
         b = min(1000, NBOOT_PANEL - done)
         signs = rng.choice(np.array([-1.0, 1.0]), size=(b, k))
-
-        # Country sign-flip permutation of the uncentred series.
-        perm_means = signs @ country_z / n
-        perm_count += int(np.sum(perm_means >= mu))
-
-        # Wild country-cluster bootstrap under H0, studentised by months.
         means = signs @ country_resid / n
         month_sums = signs @ cm - means[:, None] * month_n[None, :]
         ses = np.sqrt(np.sum(month_sums**2, axis=1)) / n
@@ -186,10 +209,7 @@ def panel_resampling(panel: pd.DataFrame) -> tuple[float, float]:
         wild_count += int(np.sum(t_boot >= t_obs))
         done += b
 
-    return (
-        (wild_count + 1) / (NBOOT_PANEL + 1),
-        (perm_count + 1) / (NBOOT_PANEL + 1),
-    )
+    return (wild_count + 1) / (NBOOT_PANEL + 1), p_perm
 
 
 def run_h1() -> tuple[dict[str, dict], pd.DataFrame, dict]:
@@ -720,11 +740,73 @@ def run_h2() -> tuple[pd.DataFrame, dict]:
     return h2, summary
 
 
+def pooled_h3_inference(e_amp, e_bin, months) -> list[dict]:
+    """Pooled H3 Sharpe-difference inference over the market-month panel.
+
+    Returns one row per method: the calendar-month cluster (a zero-lag HAC), the
+    twelve-lag calendar-month HAC that the paper reports, and a circular block
+    bootstrap over calendar months. All three sum the moment conditions by calendar
+    month so the cross-market dependence is respected.
+    """
+    cluster = pooled_calendar_hac(e_amp, e_bin, months, lags=0)
+    hac12 = pooled_calendar_hac(e_amp, e_bin, months, lags=12)
+    boot = pooled_calendar_block_bootstrap(
+        e_amp, e_bin, months, block=12, draws=4999, seed=SEED
+    )
+    rows = []
+    for method, lags, stat in (
+        ("calendar_month_cluster", 0, cluster),
+        ("calendar_month_hac12", 12, hac12),
+    ):
+        d, se, z, p_amp, p_bin, p_two, n, n_months = stat
+        rows.append(
+            {
+                "method": method,
+                "observations": n,
+                "calendar_months": n_months,
+                "markets": len(MARKETS),
+                "lags": lags,
+                "block_length": "",
+                "bootstrap_draws": 0,
+                "difference_amplitude_minus_binary": d,
+                "standard_error": se,
+                "z_statistic": z,
+                "ci95_low": d - 1.959963984540054 * se,
+                "ci95_high": d + 1.959963984540054 * se,
+                "p_amplitude_greater": p_amp,
+                "p_binary_greater": p_bin,
+                "p_two_sided": p_two,
+            }
+        )
+    bd, bse, bcl, bch, bp_amp, bp_bin, bp_two, bn, bn_months = boot
+    rows.append(
+        {
+            "method": "calendar_month_block_bootstrap_12",
+            "observations": bn,
+            "calendar_months": bn_months,
+            "markets": len(MARKETS),
+            "lags": "",
+            "block_length": 12,
+            "bootstrap_draws": 4999,
+            "difference_amplitude_minus_binary": bd,
+            "standard_error": bse,
+            "z_statistic": "",
+            "ci95_low": bcl,
+            "ci95_high": bch,
+            "p_amplitude_greater": bp_amp,
+            "p_binary_greater": bp_bin,
+            "p_two_sided": bp_two,
+        }
+    )
+    return rows
+
+
 def run_h3() -> tuple[pd.DataFrame, dict]:
     print("\n[H3] binary versus amplitude, 13 markets", flush=True)
     rows = []
-    stacked_binary = []
-    stacked_amplitude = []
+    pooled_amp = []
+    pooled_bin = []
+    pooled_months = []
     for mkt in MARKETS:
         print(f"  {mkt}", flush=True)
         returns, binary_signal, amplitude_fraction = series_for(mkt)
@@ -753,18 +835,27 @@ def run_h3() -> tuple[pd.DataFrame, dict]:
                 ),
             }
         )
-        stacked_binary.append(binary_excess.reset_index(drop=True))
-        stacked_amplitude.append(amplitude_excess.reset_index(drop=True))
+        aligned = pd.DataFrame(
+            {"amp": amplitude_excess, "bin": binary_excess}
+        ).dropna()
+        pooled_amp.append(aligned["amp"].to_numpy(float))
+        pooled_bin.append(aligned["bin"].to_numpy(float))
+        pooled_months.append(aligned.index.astype(str).to_numpy())
 
     h3 = pd.DataFrame(rows)
-    pooled_binary = pd.concat(stacked_binary, ignore_index=True)
-    pooled_amplitude = pd.concat(stacked_amplitude, ignore_index=True)
-    pooled_diff, pooled_p, pooled_n = lw_test(
-        pooled_amplitude,
-        pooled_binary,
-        pd.Series(np.zeros(len(pooled_binary))),
-    )
     h3.to_csv(OUT / "h3_per_market.csv", index=False)
+
+    # Pooled inference respects the panel: moment conditions are summed by calendar
+    # month before the HAC, rather than stacking the markets into one long series.
+    e_amp = np.concatenate(pooled_amp)
+    e_bin = np.concatenate(pooled_bin)
+    e_months = np.concatenate(pooled_months)
+    pooled_rows = pooled_h3_inference(e_amp, e_bin, e_months)
+    pd.DataFrame(pooled_rows).to_csv(
+        OUT / "h3_pooled_calendar_inference.csv", index=False
+    )
+    hac12 = next(r for r in pooled_rows if r["method"] == "calendar_month_hac12")
+
     summary = {
         "markets": len(h3),
         "amplitude_beats_binary": int(
@@ -776,9 +867,12 @@ def run_h3() -> tuple[pd.DataFrame, dict]:
                 & (h3["p_amplitude_greater"] < 0.05)
             ).sum()
         ),
-        "pooled_observations": pooled_n,
-        "pooled_difference": pooled_diff,
-        "pooled_p_amplitude_greater": pooled_p,
+        "pooled_observations": hac12["observations"],
+        "pooled_calendar_months": hac12["calendar_months"],
+        "pooled_difference": hac12["difference_amplitude_minus_binary"],
+        "pooled_standard_error": hac12["standard_error"],
+        "pooled_p_amplitude_greater": hac12["p_amplitude_greater"],
+        "pooled_p_binary_greater": hac12["p_binary_greater"],
         "terminal_wealth_ratio_below_one": int(
             (h3["terminal_wealth_ratio_amplitude_binary"] < 1).sum()
         ),

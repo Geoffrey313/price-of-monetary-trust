@@ -37,9 +37,14 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analysis.h3_variant import lw_test, run_variant, series_for
+from analysis.h3_variant import (
+    lw_test,
+    pooled_calendar_hac,
+    run_variant,
+    series_for,
+)
 from analysis.run_full_sample import wire_everything
-from common.names import MARKETS, NAMES
+from common.names import MARKETS
 from common.paths import FULL_SAMPLE_RESULTS
 from engine import engine as E
 
@@ -141,14 +146,14 @@ def main() -> int:
 
         binary = run_variant(returns, sig_bin_common)
         binary_excess = (binary - returns["bill"]).dropna()
-        pooled_binary.append(binary_excess.reset_index(drop=True))
+        pooled_binary.append(binary_excess)
         sharpe_binary = net_sharpe(binary, returns["bill"])
 
         for name in mapping_names:
             variant = run_variant(returns, family[name])
             diff, p_value, n = lw_test(variant, binary, returns["bill"])
             variant_excess = (variant - returns["bill"]).reindex(binary_excess.index)
-            pooled_variant[name].append(variant_excess.reset_index(drop=True))
+            pooled_variant[name].append(variant_excess)
             rows.append(
                 {
                     "mapping": name,
@@ -182,13 +187,24 @@ def main() -> int:
     print("sanity: published mapping reconciled 13/13 against h3_per_market.csv")
 
     table = pd.DataFrame(rows)
-    stacked_binary = pd.concat(pooled_binary, ignore_index=True)
     summaries = []
     for name in mapping_names:
         sub = table[table["mapping"] == name]
-        stacked = pd.concat(pooled_variant[name], ignore_index=True)
-        pooled_diff, pooled_p, pooled_n = lw_test(
-            stacked, stacked_binary, pd.Series(np.zeros(len(stacked_binary)))
+        amp_parts, bin_parts, month_parts = [], [], []
+        for binary_excess, variant_excess in zip(
+            pooled_binary, pooled_variant[name]
+        ):
+            aligned = pd.DataFrame(
+                {"amp": variant_excess, "bin": binary_excess}
+            ).dropna()
+            amp_parts.append(aligned["amp"].to_numpy(float))
+            bin_parts.append(aligned["bin"].to_numpy(float))
+            month_parts.append(aligned.index.astype(str).to_numpy())
+        pooled_diff, _, _, pooled_p, _, _, pooled_n, _ = pooled_calendar_hac(
+            np.concatenate(amp_parts),
+            np.concatenate(bin_parts),
+            np.concatenate(month_parts),
+            lags=12,
         )
         summaries.append(
             {
@@ -202,7 +218,7 @@ def main() -> int:
                 "markets_variant_wins": int((sub["diff"] > 0).sum()),
                 "median_diff": float(sub["diff"].median()),
                 "mean_diff": float(sub["diff"].mean()),
-                "pooled_diff_stacked_months": pooled_diff,
+                "pooled_diff_calendar_months": pooled_diff,
                 "pooled_p_variant_greater": pooled_p,
             }
         )
@@ -216,7 +232,7 @@ def main() -> int:
         print(
             f"{s['mapping']:<9} {s['markets_variant_wins']:>6}   "
             f"{s['median_diff']:+.4f}      {s['mean_diff']:+.4f}    "
-            f"{s['pooled_diff_stacked_months']:+.4f}      "
+            f"{s['pooled_diff_calendar_months']:+.4f}      "
             f"{s['pooled_p_variant_greater']:.3f}"
         )
     print(f"written to {out_path}")

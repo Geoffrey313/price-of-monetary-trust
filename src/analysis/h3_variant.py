@@ -72,6 +72,112 @@ def lw_test(x_amp, x_bin, bill, lags=12):
     from scipy.stats import norm
     return diff, float(1 - norm.cdf(diff / se)), n
 
+
+def pooled_calendar_hac(e_amp, e_bin, months, lags=12):
+    """Pooled Sharpe-difference test (amp - bin) that respects the panel structure.
+
+    The four moment conditions (mu1, mu2, E[e1^2], E[e2^2]) are centred, summed by
+    calendar month, and only then fed to a Bartlett HAC covariance. Summing across
+    markets within a month makes the estimator treat contemporaneous cross-market
+    dependence, in the spirit of Driscoll and Kraay, instead of stacking the markets
+    into one artificial series. For a single market each month holds one observation,
+    so the monthly sums equal the centred moments and the result coincides with
+    :func:`lw_test`. ``lags=0`` gives the plain calendar-month cluster.
+
+    ``months`` is one calendar-month label per observation, aligned with ``e_amp`` and
+    ``e_bin``; ISO ``YYYY-MM`` style labels sort chronologically, which the Bartlett
+    kernel relies on. Returns ``(diff, se, z, p_amp_greater, p_bin_greater,
+    p_two_sided, n_obs, n_months)``.
+    """
+    from scipy.stats import norm
+
+    e1 = np.asarray(e_amp, float)
+    e2 = np.asarray(e_bin, float)
+    months = np.asarray(months)
+    n = len(e1)
+
+    def sharpe_ratio(e):
+        return e.mean() / e.std()
+
+    diff = (sharpe_ratio(e1) - sharpe_ratio(e2)) * np.sqrt(12)
+    moments = np.column_stack([e1, e2, e1**2, e2**2])
+    centred = moments - moments.mean(0)
+
+    unique_months = np.unique(months)  # sorted chronologically for ISO labels
+    month_code = np.searchsorted(unique_months, months)
+    monthly = np.zeros((len(unique_months), moments.shape[1]))
+    np.add.at(monthly, month_code, centred)
+
+    S = monthly.T @ monthly / n
+    for lag in range(1, lags + 1):
+        weight = 1 - lag / (lags + 1)
+        cross = monthly[lag:].T @ monthly[:-lag] / n
+        S += weight * (cross + cross.T)
+
+    m1, m2, g1, g2 = moments.mean(0)
+    v1, v2 = g1 - m1**2, g2 - m2**2
+    grad = np.array(
+        [g1 / v1**1.5, -g2 / v2**1.5, -0.5 * m1 / v1**1.5, 0.5 * m2 / v2**1.5]
+    )
+    se = float(np.sqrt(grad @ S @ grad / n) * np.sqrt(12))
+    z = diff / se
+    return (
+        diff,
+        se,
+        float(z),
+        float(1 - norm.cdf(z)),
+        float(norm.cdf(z)),
+        float(2 * norm.cdf(-abs(z))),
+        n,
+        len(unique_months),
+    )
+
+
+def pooled_calendar_block_bootstrap(e_amp, e_bin, months, block=12, draws=4999, seed=0):
+    """Circular block bootstrap of the pooled Sharpe difference by calendar month.
+
+    Calendar months are resampled in circular blocks of ``block`` months; every
+    market-month observation inside a drawn month travels with it, so the resample
+    preserves the within-month cross-market dependence. Returns ``(diff, se,
+    ci_low, ci_high, p_amp_greater, p_bin_greater, p_two_sided, n_obs, n_months)``,
+    where the one-sided values are the share of resamples on each side of zero.
+    """
+    e1 = np.asarray(e_amp, float)
+    e2 = np.asarray(e_bin, float)
+    months = np.asarray(months)
+
+    unique_months = np.unique(months)
+    n_months = len(unique_months)
+    month_code = np.searchsorted(unique_months, months)
+    order = np.argsort(month_code, kind="stable")
+    counts = np.bincount(month_code, minlength=n_months)
+    starts = np.zeros(n_months, dtype=int)
+    starts[1:] = np.cumsum(counts)[:-1]
+    month_obs = [order[starts[m] : starts[m] + counts[m]] for m in range(n_months)]
+
+    def sharpe_diff(a, b):
+        return (a.mean() / a.std() - b.mean() / b.std()) * np.sqrt(12)
+
+    point = sharpe_diff(e1, e2)
+    rng = np.random.default_rng(seed)
+    n_blocks = int(np.ceil(n_months / block))
+    diffs = np.empty(draws)
+    for draw in range(draws):
+        block_starts = rng.integers(0, n_months, size=n_blocks)
+        month_sequence = np.concatenate(
+            [(np.arange(s, s + block) % n_months) for s in block_starts]
+        )[:n_months]
+        idx = np.concatenate([month_obs[m] for m in month_sequence])
+        diffs[draw] = sharpe_diff(e1[idx], e2[idx])
+
+    se = float(diffs.std(ddof=1))
+    ci_low, ci_high = (float(v) for v in np.percentile(diffs, [2.5, 97.5]))
+    p_bin = float(np.mean(diffs >= 0.0))
+    p_amp = float(np.mean(diffs <= 0.0))
+    p_two = float(2 * min(p_amp, p_bin))
+    return point, se, ci_low, ci_high, p_amp, p_bin, p_two, len(e1), n_months
+
+
 def main():
     rows, pool_a, pool_b, pool_bill = [], [], [], []
     for mkt in ["CHE", "CAN", "DEU", "IND"]:

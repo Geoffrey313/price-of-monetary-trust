@@ -4,8 +4,10 @@ title: "Bonds or Gold: The Price of Monetary Trust"
 abstract: >
   A test of the practitioner four-quadrant allocation framework, decomposed into
   its energy and monetary axes on thirteen markets. The monetary axis, a bond
-  total-return index over gold, survives; the energy axis does not; the surviving
-  rule is a single binary switch between bonds and gold.
+  total-return index over gold, survives in the full sample; the energy axis does
+  not; the surviving rule is a single binary switch between bonds and gold. The
+  monetary advantage concentrates before the gold float and is not established in
+  the modern tradeable sample.
 type: software
 authors:
   - family-names: Ducournau
