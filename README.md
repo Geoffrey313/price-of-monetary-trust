@@ -66,40 +66,38 @@ pre-float gold regime, held inside an otherwise static equal-weight portfolio.
 
 ```
 src/common/    market constants, frozen protocol values, and portable paths
-src/data/      public snapshots, WRDS access, and bond-return construction
+src/data/      readers for the shipped derived layer and bond-return construction
 src/engine/    the portfolio engine and equity reference reconstruction
 src/analysis/  H1--H3, era analyses, and macroeconomic controls
 src/figures/   figures and generated appendix tables
 reproduce.py   deterministic end-to-end entry point
-data/README.md where to place licensed and downloaded inputs (the data is not shipped)
+data/derived/  the shipped WRDS-free monthly inputs, one Parquet per market
+data/vendor/   public vendored macro inputs (oil VAR, industry, production)
+data/README.md documents the shipped data and its licensing
 ```
 
 ## Reproducing the results
 
-1. Copy `.env.example` to `.env.local` and fill in the API credentials (see Data
-   and credentials below).
-2. Install the dependencies: `pip install -r requirements.txt`.
-3. Put licensed WRDS/CRSP reconstructions and downloaded public inputs in the
-   layout documented by `data/README.md`, or set `FOUR_QUADRANT_DATA_DIR`.
-4. Run `python reproduce.py`. It rebuilds H1--H3, the era analyses, figures, and
-   macro controls, and writes the outputs locally. Neither the generated outputs
-   nor the manuscript are stored in this repository; the code is the single
-   source of truth.
-
-Use `python reproduce.py --refresh-fred` only when intentionally refreshing the
-public FRED snapshots. Direct module commands use `PYTHONPATH=src`, for example
-`PYTHONPATH=src python -m analysis.run_full_sample`.
-
-To reproduce without WRDS access, first build the derived layer once with
-credentials in place, then run offline against it:
+The repository ships the transformed inputs the offline run reads: the derived
+layer (`data/derived/`, one Parquet per market) and the public vendored macro
+files (`data/vendor/`). Install the dependencies and run the offline entry
+point:
 
 ```
-PYTHONPATH=src python -m engine.derived_inputs   # writes data/derived/*.parquet
-python reproduce.py --from-derived               # rebuilds results without WRDS
+pip install -r requirements.txt
+python reproduce.py --from-derived
 ```
 
-The derived layer is not shipped (it is downstream of licensed reconstructions
-and `data/` is git-ignored); see `data/README.md`.
+This reads the shipped inputs and rebuilds the currency results and figures
+locally. Neither the generated outputs nor the manuscript are stored in this
+repository; the code is the single source of truth. Direct module commands use
+`PYTHONPATH=src`, for example `PYTHONPATH=src python -m analysis.run_full_sample`.
+
+The H2 energy test and the full build reconstruct listed-energy and equity total
+returns from S&P Compustat Global through WRDS. Those licensed inputs are not
+part of this repository and are available on request (see Contact). Given WRDS
+and FRED access, `PYTHONPATH=src python -m engine.derived_inputs` regenerates the
+shipped derived layer.
 
 ## Data and credentials
 
@@ -109,8 +107,14 @@ Global and CRSP through WRDS for the equity reconstructions and the energy
 pockets; a dollar gold series converted into local currency; and Shiller, the
 Swiss National Bank, Statistics Canada and Damodaran for validation. All
 credentials are read from the process environment or the repository
-`.env.local` and are never written into code. Licensed and raw inputs are
-excluded from version control.
+`.env.local` and are never written into code. Licensed and raw inputs, and the
+scripts that acquire them, are excluded from version control; the transformed
+inputs the offline run needs are shipped under `data/`.
+
+## Contact
+
+Questions about the code, or requests for the licensed reconstruction inputs:
+Geoffrey Ducournau, G.ducournau.voisin@gmail.com.
 
 ## The paper
 

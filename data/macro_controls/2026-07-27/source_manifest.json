@@ -1,0 +1,31 @@
+{
+  "snapshot_date": "2026-07-27",
+  "market_count": 20,
+  "sources": {
+    "eia": {
+      "url": "https://www.eia.gov/opendata/bulk/INTL.zip",
+      "sha256": "00caf66df4303a6fc49952dfc16de36e676986ceaed6ddc98300f0706b03919d",
+      "series_family": "INTL.4415 petroleum and other liquids"
+    },
+    "bis": {
+      "url": "https://data.bis.org/static/bulk/WS_CBTA_csv_flat.zip",
+      "sha256": "71419bd22b9b557e993bba8a07da8e9248a03b5b6cfdb6c419f3de227e9be182",
+      "series": "quarterly BIS-spliced break-adjusted assets/GDP"
+    },
+    "world_bank_oil_rents": {
+      "indicator": "NY.GDP.PETR.RT.ZS",
+      "sha256": "a2ee65c708bf669761816f6fd9cd9cfcbad3c766275223965f5d9f32775fe028"
+    },
+    "world_bank_fuel_exports": {
+      "indicator": "TX.VAL.FUEL.ZS.UN",
+      "sha256": "c169540aa319cea98e2eb50f02eca996bbfb75e56218af663417f461f4dbd290"
+    }
+  },
+  "outputs": {
+    "eia_rows": 889,
+    "bis_rows": 4377,
+    "oil_rents_rows": 1320,
+    "fuel_exports_rows": 1320,
+    "coverage_rows": 20
+  }
+}

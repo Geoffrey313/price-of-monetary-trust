@@ -12,7 +12,6 @@ Run: ``PYTHONPATH=src python -m engine.equity_reconstruction``.
 """
 import numpy as np, pandas as pd
 from common.paths import RECON_DATA
-from data.wrds import WRDSClient
 from engine import engine as E
 from engine import reference_series as G
 
@@ -102,6 +101,8 @@ def wire(mkt, cfg, rec):
 
 
 def main():
+    from data.wrds import WRDSClient  # acquisition layer, full WRDS path only
+
     with WRDSClient() as db:
         recs = {m: build_recon(db, m, c) for m, c in CFG.items()}
     print("\n[D10b] every result: equity TR reconstructed from Compustat security files (WRDS); "

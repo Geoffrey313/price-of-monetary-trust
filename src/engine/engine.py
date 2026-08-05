@@ -46,8 +46,21 @@ from common.paths import (
     REPO_ROOT,
     protocol_log,
 )
-from data.fred_snapshot import fred
 from data.treasury_total_return import construct_monthly_tr
+
+
+def fred(*args, **kwargs):
+    """Load a registered FRED snapshot series.
+
+    Lazy proxy: the FRED-snapshot acquisition module is only exercised on the
+    full WRDS/FRED build. The ``--from-derived`` reproduction overrides every
+    per-market provider with the shipped Parquet loaders and never calls ``fred``,
+    so its import is deferred here to keep the acquisition layer out of the
+    published tree without breaking the offline run.
+    """
+    from data.fred_snapshot import fred as _fred
+
+    return _fred(*args, **kwargs)
 
 EV = EVIDENCE_DATA
 

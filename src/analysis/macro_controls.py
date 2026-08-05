@@ -13,6 +13,7 @@ from pathlib import Path
 import hashlib
 import itertools
 import json
+import os
 
 import numpy as np
 import pandas as pd
@@ -80,17 +81,13 @@ def sha256(path: Path) -> str:
 def build_h2_monthly_panel() -> pd.DataFrame:
     """Rebuild H2 returns and verify all 13 country-level Sharpe differences."""
     R.wire_everything()
-    keys = R.energy_keys()
+    keys = set() if os.environ.get("FOUR_QUADRANT_FROM_DERIVED") == "1" else R.energy_keys()
     expected = pd.read_csv(SOURCE_OUT / "h2_per_market.csv").set_index("market")
     rows: list[pd.DataFrame] = []
     audit_rows: list[dict[str, object]] = []
     for market in MARKETS:
         print(f"[H2 monthly, 13 markets] {market}", flush=True)
-        energy, _ = (
-            R.build_usa_energy()
-            if market == "USA"
-            else R.build_global_energy(market, keys)
-        )
+        energy, _ = R.market_energy(market, keys)
         result = R.run_h2_market(market, energy)
         currency = result["series"]["currency_only"]
         energy_rule = result["series"]["currency_energy"]

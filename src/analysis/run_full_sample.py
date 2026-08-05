@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import os
 from math import erf, sqrt
 
 import matplotlib
@@ -42,7 +43,7 @@ from analysis.h3_variant import (
     series_for,
 )
 from common.names import EURO, MARKETS, NAMES
-from common.paths import FULL_SAMPLE_RESULTS, RECON_DATA, REPO_ROOT
+from common.paths import DERIVED_ENERGY_DATA, FULL_SAMPLE_RESULTS, RECON_DATA, REPO_ROOT
 from data.treasury_total_return import construct_monthly_tr
 from engine import engine as E
 from engine import market_wiring as P
@@ -476,6 +477,31 @@ def build_global_energy(mkt: str, ekeys: set[str]) -> tuple[pd.Series, pd.DataFr
     return aggregate_energy(s, "security", "gvkey")
 
 
+def market_energy(mkt: str, ekeys: set[str]) -> tuple[pd.Series, pd.DataFrame]:
+    """Return (energy total-return series, coverage) for a market's energy sleeve.
+
+    Offline (``FOUR_QUADRANT_FROM_DERIVED=1``) the aggregated series is read from
+    the shipped frozen layer ``data/derived/energy/{market}.parquet``. Otherwise it
+    is built from the licensed reconstruction and frozen to that layer, so the
+    offline inputs stay in sync with a full run. The frozen file holds only
+    market-level aggregates (return, firm/security counts, concentration), never
+    firm-level records.
+    """
+    frozen = DERIVED_ENERGY_DATA / f"{mkt}.parquet"
+    if os.environ.get("FOUR_QUADRANT_FROM_DERIVED") == "1":
+        coverage = pd.read_parquet(frozen)
+        coverage.index = pd.PeriodIndex(coverage["month"], freq="M")
+        coverage = coverage.drop(columns="month")
+        return coverage["return"], coverage
+    energy, coverage = build_usa_energy() if mkt == "USA" else build_global_energy(mkt, ekeys)
+    frozen_frame = coverage.copy()
+    frozen_frame.index = frozen_frame.index.astype(str)
+    frozen_frame.index.name = "month"
+    DERIVED_ENERGY_DATA.mkdir(parents=True, exist_ok=True)
+    frozen_frame.reset_index().to_parquet(frozen, index=False)
+    return energy, coverage
+
+
 def build_usa_energy() -> tuple[pd.Series, pd.DataFrame]:
     f = RECON / "USA_energy_crsp.parquet"
     if not f.exists():
@@ -649,7 +675,7 @@ def exposure_table() -> pd.DataFrame:
 
 def run_h2() -> tuple[pd.DataFrame, dict]:
     print("\n[H2] complete 13-market energy rerun", flush=True)
-    keys = energy_keys()
+    keys = set() if os.environ.get("FOUR_QUADRANT_FROM_DERIVED") == "1" else energy_keys()
     exposures = exposure_table()
     exposures.to_csv(OUT / "h2_world_bank_exposure_2021.csv", index=False)
 
@@ -657,9 +683,7 @@ def run_h2() -> tuple[pd.DataFrame, dict]:
     coverage_rows = []
     for mkt in MARKETS:
         print(f"  {mkt}", flush=True)
-        energy, coverage = (
-            build_usa_energy() if mkt == "USA" else build_global_energy(mkt, keys)
-        )
+        energy, coverage = market_energy(mkt, keys)
         result = run_h2_market(mkt, energy)
         in_window = coverage.reindex(result["returns"].index).dropna()
         coverage_rows.append(

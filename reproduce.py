@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import os
 import subprocess
 import sys
@@ -145,6 +146,15 @@ def main(argv: list[str] | None = None) -> int:
     before_mtimes = file_mtimes()
     refresh = ("--refresh-fred",) if args.refresh_fred else ()
     if not args.from_derived:
+        if importlib.util.find_spec("data.fetch_inputs") is None:
+            print(
+                "The full WRDS/FRED acquisition layer (data.fetch_inputs and the "
+                "data/*.py fetchers) is not part of the published repository. "
+                "Reproduce offline from the shipped derived layer instead:\n"
+                "    python reproduce.py --from-derived",
+                file=sys.stderr,
+            )
+            return 2
         run_step("data fetch and input preflight", "data.fetch_inputs", *refresh)
     run_step("full-sample H1--H3", "analysis.run_full_sample")
     run_step("inference corrections (Holm, joint dependence, H3 reverse, RDD)", "analysis.inference_corrections")

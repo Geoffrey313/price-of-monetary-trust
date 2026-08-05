@@ -44,6 +44,12 @@ RECON_DATA = _data_subdir("recon")
 EVIDENCE_DATA = _data_subdir("evidence")
 MACRO_DATA = _data_subdir("macro_controls") / "2026-07-27"
 
+# Shipped, WRDS-free derived inputs. The energy sublayer freezes the aggregated
+# listed-energy total return per market so H2 reproduces offline (see
+# data/derived/README.md); it holds market-level aggregates, no firm-level data.
+DERIVED_DATA = DATA_ROOT / "derived"
+DERIVED_ENERGY_DATA = DERIVED_DATA / "energy"
+
 _canonical_fred = DATA_ROOT / "fred"
 FRED_DATA = _configured_path(
     "FOUR_QUADRANT_FRED_DATA_DIR",
@@ -86,7 +92,16 @@ def read_env_value(name: str, *, required: bool = False) -> str | None:
 
 
 def protocol_log() -> Path:
-    """Locate the frozen conformance record in publication or legacy layout."""
+    """Locate the conformance record the engine guard reads.
+
+    The published repository ships only a minimal conformance marker
+    (``protocol/conformance-marker.md``); the full internal deviations log is not
+    published. Prefer the shipped marker, then the local deviations log, then the
+    legacy workspace layout.
+    """
+    shipped_marker = REPO_ROOT / "protocol" / "conformance-marker.md"
+    if shipped_marker.exists():
+        return shipped_marker
     canonical = REPO_ROOT / "protocol" / "DEVIATIONS.md"
     if canonical.exists():
         return canonical

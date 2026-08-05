@@ -17,7 +17,6 @@ Run: python euro_experiment.py
 """
 import numpy as np, pandas as pd
 from common.paths import RECON_DATA
-from data.wrds import WRDSClient
 from engine import engine as E
 from engine import equity_reconstruction as F
 from engine import reference_series as G
@@ -92,6 +91,8 @@ def adv_split(mkt):
 
 
 def main():
+    from data.wrds import WRDSClient  # acquisition layer, full WRDS path only
+
     with WRDSClient() as db:
         for mkt, cfg in EURO_CONFIG.items():
             wire(mkt, cfg, equity_recon(db, mkt, cfg[5]))

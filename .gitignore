@@ -14,18 +14,36 @@ __pycache__/
 venv/
 
 # --- This repository publishes ONLY the code that reproduces the results. ---
-# --- The manuscript, the generated results, and all input/output data stay out. ---
+# --- The manuscript, the generated results, and licensed/raw input data stay out. ---
 /paper/
 /results/
 /data/*
 !/data/README.md
+# The transformed inputs the offline run needs ARE shipped so `reproduce.py
+# --from-derived` runs from a clean clone: the WRDS-free derived layer (small
+# aggregated series, see data/derived/README.md) and the public vendored macro
+# inputs (Kilian oil VAR, Fama-French 12-industry, FRED industrial production).
+!/data/derived/
+!/data/vendor/
+!/data/macro_controls/
+!/data/fred/
+
+# --- Raw-data acquisition scripts: not part of the published reproduction. ---
+# --- The offline path reads the shipped derived layer; these fetch licensed/  ---
+# --- public raw inputs and are kept locally only (author-side regeneration).  ---
+/src/data/fetch_fred.py
+/src/data/fetch_inputs.py
+/src/data/fred_snapshot.py
+/src/data/wrds.py
 
 # --- Pre-publication exploratory workspace (canonical code is under src/) ---
 /tooling/
 
 # --- Frozen pre-registration records (gate/freeze framing; superseded by the
 #     full-sample methodology of the paper — kept locally, not published) ---
-/protocol/
+/protocol/*
+# ...except the minimal conformance marker the published engine guard reads.
+!/protocol/conformance-marker.md
 
 # --- Internal working notes: audit reports, session logs (kept locally, not published) ---
 /docs/

@@ -33,7 +33,6 @@ import numpy as np
 import pandas as pd
 
 from common.paths import EVIDENCE_DATA, FRED_RAW_DATA, RECON_DATA
-from data.wrds import WRDSClient
 
 EV = EVIDENCE_DATA
 CACHE = RECON_DATA
@@ -275,6 +274,8 @@ MK = {
 
 
 def run(fic: str) -> bool:
+    from data.wrds import WRDSClient  # acquisition layer, full WRDS path only
+
     cfg = MK[fic]
     if fic == "USA":
         with WRDSClient() as db:

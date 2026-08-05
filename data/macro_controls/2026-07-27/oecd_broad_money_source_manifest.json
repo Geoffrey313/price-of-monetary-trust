@@ -1,0 +1,40 @@
+{
+  "snapshot_date": "2026-07-27",
+  "retrieval_date": "2026-07-27",
+  "source": "OECD Data Explorer, Monetary aggregates",
+  "source_url": "https://sdmx.oecd.org/public/rest/v1/data/OECD.SDD.STES,DSD_STES@DF_MONAGG,/AUS+CAN+CHE+EA20+GBR+JPN+NOR+USA+ZAF.M.MABM.XDC._Z.N._Z._Z.N?startPeriod=1960-01&endPeriod=2026-06",
+  "input_sha256": "4298220ca4a9f7d56e3f6c6a7f23bfd36394d1fb35033d85e6f3fd418932aad7",
+  "input_bytes": 555285,
+  "selection": {
+    "frequency": "M",
+    "measure": "MABM",
+    "unit_measure": "XDC",
+    "adjustment": "N",
+    "transformation": "_Z",
+    "methodology": "N"
+  },
+  "market_to_source_area": {
+    "AUS": "AUS",
+    "BEL": "EA20",
+    "CAN": "CAN",
+    "CHE": "CHE",
+    "DEU": "EA20",
+    "ESP": "EA20",
+    "FRA": "EA20",
+    "GBR": "GBR",
+    "JPN": "JPN",
+    "NLD": "EA20",
+    "NOR": "NOR",
+    "USA": "USA",
+    "ZAF": "ZAF"
+  },
+  "euro_area_rule": "EA20 is used for BEL, DEU, ESP, FRA and NLD from 1999 onward only",
+  "outputs": {
+    "series_file": "oecd_broad_money_monthly_sources.csv",
+    "series_rows": 6167,
+    "series_sha256": "a4ead7ac8accf9ea92f0236d57f8f6e9caa6d6c93a1ead7761981a964a0e5eac",
+    "coverage_file": "oecd_broad_money_13_coverage.csv",
+    "coverage_rows": 13,
+    "coverage_sha256": "a504b185ab50da32f66d95026f2ffe1a93676cc071db51ebf82360f4c3c839d2"
+  }
+}

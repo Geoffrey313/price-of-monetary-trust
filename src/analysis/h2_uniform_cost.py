@@ -20,6 +20,7 @@ Run: ``FOUR_QUADRANT_FROM_DERIVED=1 PYTHONPATH=src python -m analysis.h2_uniform
 """
 from __future__ import annotations
 
+import os
 from contextlib import contextmanager
 
 import numpy as np
@@ -55,14 +56,12 @@ def main() -> int:
     published = pd.read_csv(FULL_SAMPLE_RESULTS / "h2_per_market.csv").set_index(
         "market"
     )
-    keys = F.energy_keys()
+    keys = set() if os.environ.get("FOUR_QUADRANT_FROM_DERIVED") == "1" else F.energy_keys()
 
     rows = []
     for mkt in MARKETS:
         print(f"[h2 uniform cost] {mkt}", flush=True)
-        energy, _coverage = (
-            F.build_usa_energy() if mkt == "USA" else F.build_global_energy(mkt, keys)
-        )
+        energy, _coverage = F.market_energy(mkt, keys)
 
         result_50 = F.run_h2_market(mkt, energy)
         advantage_50 = (
