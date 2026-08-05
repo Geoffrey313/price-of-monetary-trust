@@ -7,7 +7,7 @@ same assets and cost model but remove that calendar?
 
 Outputs
 -------
-results/complete-sample-rerun-2026-07-26/
+results/full-sample/
     signal_counterfactual_rules.csv
     signal_circular_shift_summary.csv
     signal_circular_shift_draws.csv
@@ -31,6 +31,7 @@ import pandas as pd
 
 from engine import engine
 from analysis import run_full_sample as rerun
+from common.stats import holm_adjust
 
 
 MARKETS = rerun.MARKETS
@@ -214,17 +215,6 @@ def permute_run_durations(
         cursor[state] += 1
         pieces.append(np.full(length, state, dtype=float))
     return np.concatenate(pieces)
-
-
-def holm_adjust(values: pd.Series) -> pd.Series:
-    order = np.argsort(values.to_numpy())
-    sorted_values = values.to_numpy()[order]
-    adjusted_sorted = np.maximum.accumulate(
-        (len(values) - np.arange(len(values))) * sorted_values
-    )
-    adjusted = np.empty(len(values))
-    adjusted[order] = np.minimum(adjusted_sorted, 1.0)
-    return pd.Series(adjusted, index=values.index)
 
 
 def main() -> int:

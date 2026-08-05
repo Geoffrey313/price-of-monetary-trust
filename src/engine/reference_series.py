@@ -279,7 +279,7 @@ def run(fic: str) -> bool:
     if fic == "USA":
         with WRDSClient() as db:
             recon = recon_usa_crsp(db)
-        print(f"\n=== USA (CRSP) ===")
+        print("\n=== USA (CRSP) ===")
     else:
         with WRDSClient() as db:
             sec = pull_market(db, fic, cfg["lib"])

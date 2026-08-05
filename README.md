@@ -55,8 +55,8 @@ cost assumptions everywhere.
 * The advantage is concentrated before 2000. The pooled alpha moves from 0.317
   before 2000 to minus 0.019 after. This split is descriptive and carries no
   causal claim. In the modern sample, with a freely floating and investable gold,
-  the advantage is essentially zero, so the rule's value in the modern tradeable
-  regime is not established.
+  the pooled alpha is essentially zero, so the rule's advantage is a dated feature
+  of the record, sitting in the pre-float, less investable gold regime.
 
 Put together, the four-quadrant framework reduces to a single binary monetary
 switch between bonds and gold, real in the full sample but carried by the
@@ -70,7 +70,6 @@ src/data/      public snapshots, WRDS access, and bond-return construction
 src/engine/    the portfolio engine and equity reference reconstruction
 src/analysis/  H1--H3, era analyses, and macroeconomic controls
 src/figures/   figures and generated appendix tables
-protocol/      frozen source, deviation, and trial records
 reproduce.py   deterministic end-to-end entry point
 data/README.md where to place licensed and downloaded inputs (the data is not shipped)
 ```

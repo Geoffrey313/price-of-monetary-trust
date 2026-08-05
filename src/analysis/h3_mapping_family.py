@@ -2,7 +2,7 @@
 
 Inputs: the same in-memory market series as ``analysis.h3_variant`` and the
 published ``h3_per_market.csv`` used for the sanity reconciliation.
-Outputs: ``results/complete-sample-rerun-2026-07-26/h3_mapping_family.csv``.
+Outputs: ``results/full-sample/h3_mapping_family.csv``.
 Purpose: stress-test the paper's H3 reading (the information is in the sign of
 the monetary signal, not its amplitude) by running four alternative graded
 mappings from the frozen amplitude score z2 to a bond fraction in [0, 1].

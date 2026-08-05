@@ -5,7 +5,7 @@ Inputs: the committed derived layer ``data/derived/{market}.parquet`` (columns
 in-memory engine for the cross-check.
 Outputs: ``paper/_gen/appendix_provenance_fr.tex`` (or ``_en`` under
 ``FOUR_QUADRANT_FIG_LANG=en``) and the machine-readable
-``results/complete-sample-rerun-2026-07-26/provenance_per_market.csv``.
+``results/full-sample/provenance_per_market.csv``.
 Purpose: document, for each of the thirteen markets, the equity source, the
 first and last usable month of the four raw series, the month the bond/gold
 signal completes its 84-month warm-up, the evaluation window, and which series

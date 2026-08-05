@@ -2,7 +2,7 @@
 
 Inputs: the wired thirteen-market engine (signal series and CPI levels from
 the derived layer).
-Outputs: ``results/complete-sample-rerun-2026-07-26/mechanism_predictive.csv``.
+Outputs: ``results/full-sample/mechanism_predictive.csv``.
 Purpose: strengthen the mechanism check.  The published check regresses the
 CONTEMPORANEOUS twelve-month inflation rate on the binary bond state and is
 fragile under Driscoll and Kraay covariance.  This module runs the same
@@ -16,7 +16,7 @@ implementations replicate the published check exactly:
 
 * inflation is ``E.cpi_index(market).pct_change(12) * 100`` as in
   ``run_full_sample.run_inflation_validity`` and in the published joint
-  inference (``inflation_signal_joint_inference_2026-07-27.csv``);
+  inference (``inflation_signal_joint_inference.csv``);
 * the state is the engine's applied (lagged) signal series
   ``run_market(...)['series']['signal']`` with ``real_gate=False``, exactly
   the series the published check uses;
@@ -41,7 +41,7 @@ from common.paths import FULL_SAMPLE_RESULTS
 from engine import engine as E
 
 OUT = FULL_SAMPLE_RESULTS
-PUBLISHED_FILE = OUT / "inflation_signal_joint_inference_2026-07-27.csv"
+PUBLISHED_FILE = OUT / "inflation_signal_joint_inference.csv"
 OUT_FILE = OUT / "mechanism_predictive.csv"
 
 COVARIANCE_SPECS = [

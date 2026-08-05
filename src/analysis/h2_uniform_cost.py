@@ -2,7 +2,7 @@
 
 Inputs: the same derived/reconstructed inputs as ``analysis.run_full_sample``
 and the published ``h2_per_market.csv`` used for reconciliation.
-Outputs: ``results/complete-sample-rerun-2026-07-26/h2_uniform_cost.csv``.
+Outputs: ``results/full-sample/h2_uniform_cost.csv``.
 Purpose: rerun the exact published H2 computation with the energy pocket
 charged the uniform 40 bp one-way cost instead of the published 50 bp, and
 report the per-market augmentation advantage under both costs.

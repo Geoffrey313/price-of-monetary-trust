@@ -44,7 +44,7 @@ from figures.plot_style import (
 )
 
 OUT = FULL_SAMPLE_RESULTS
-MONTHLY = OUT / "h1_signal_states_monthly_2026-07-27.csv"
+MONTHLY = OUT / "h1_signal_states_monthly.csv"
 PER_MARKET = OUT / "h1_per_market.csv"
 CUT = pd.Period("2000-01", freq="M")
 

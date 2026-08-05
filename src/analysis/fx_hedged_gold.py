@@ -1,8 +1,8 @@
 """Quantify the FX content of the gold pocket and of the monetary signal (referee M7).
 
 Inputs: the wired engine inputs (derived layer with ``FOUR_QUADRANT_FROM_DERIVED=1``)
-and ``results/complete-sample-rerun-2026-07-26/h1_per_market.csv`` for the parity check.
-Outputs: ``results/complete-sample-rerun-2026-07-26/h1_fx_hedged_gold.csv``.
+and ``results/full-sample/h1_per_market.csv`` for the parity check.
+Outputs: ``results/full-sample/h1_fx_hedged_gold.csv``.
 Purpose: for the twelve non-US markets, gold in local currency is dollar gold times
 the local exchange rate, so both the fourth-pocket P&L and the bond/gold signal embed
 an implicit long-dollar position. This driver reruns H1 through the unmodified engine

@@ -3,7 +3,7 @@
 Inputs: the in-memory USA monthly series from the H1 engine
 (``engine.engine.run_market`` with the derived data layer wired by
 ``analysis.run_full_sample.wire_everything``).
-Outputs: ``results/complete-sample-rerun-2026-07-26/
+Outputs: ``results/full-sample/
 h1_us_gold_parity_robustness.csv`` and a printed table.
 Purpose: referee point M5(ii).  The paper's US evaluation window starts in
 1960:4, inside the Bretton Woods era when the dollar gold parity was

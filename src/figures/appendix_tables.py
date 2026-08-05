@@ -10,6 +10,7 @@ published result panels as the paper.  Existing N/mean/std/min/median/max
 values are asserted before P25 and P75 are written.
 """
 from __future__ import annotations
+from pathlib import Path
 
 import hashlib
 
@@ -552,10 +553,10 @@ def notation_rows() -> list[dict[str, str]]:
             "source_fr": L("Calcul des auteurs.", "Authors' calculation."),
         },
         {
-            "name_tex": L(r"Référence contraignante, $b_i^\star$", r"Binding benchmark, $b_i^\star$"),
-            "symbol_tex": r"b_i^\star",
+            "name_tex": L(r"Référence contraignante, $b_i^{*}$", r"Binding benchmark, $b_i^{*}$"),
+            "symbol_tex": r"b_i^{*}",
             "field_tex": r"\texttt{b6040}, \texttt{pp}",
-            "formula_tex": r"$b_i^\star=\arg\max_{b\in\{60/40,pp\}}\mathrm{SR}^b_i$",
+            "formula_tex": r"$b_i^{*}=\arg\max_{b\in\{60/40,pp\}}\mathrm{SR}^b_i$",
             "definition_fr": L(
                 "Référence statique ayant le Sharpe net le plus élevé dans le marché.",
                 "Static benchmark with the highest net Sharpe in the market.",
@@ -667,10 +668,10 @@ def notation_rows() -> list[dict[str, str]]:
         },
         {
             "name_tex": L(
-                r"Avantage H2, $A_i^{\mathrm{aug}}\equiv A_i^E$",
-                r"H2 advantage, $A_i^{\mathrm{aug}}\equiv A_i^E$",
+                r"Avantage H2, $A_i^E$",
+                r"H2 advantage, $A_i^E$",
             ),
-            "symbol_tex": r"A_i^{\mathrm{aug}}\equiv A_i^E",
+            "symbol_tex": r"A_i^E",
             "field_tex": r"\texttt{augmentation\_advantage}",
             "formula_tex": L(r"Équation~\eqref{eq:h2advantage}", r"Equation~\eqref{eq:h2advantage}"),
             "definition_fr": L(
@@ -926,7 +927,7 @@ def main() -> int:
             for path in outputs
         ]
     )
-    manifest_path = figpath(RESULTS / "appendix_tables_sha256_2026-07-27.csv")
+    manifest_path = figpath(RESULTS / "appendix_tables_sha256.csv")
     manifest.to_csv(manifest_path, index=False)
 
     print(descriptions.to_string(index=False))

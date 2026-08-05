@@ -102,14 +102,20 @@ def run_step(
 
 # Steps whose output text and file names depend on the manuscript language. Run
 # once per language so both the French and the English generated fragments and
-# figures are reproduced.
+# figures are reproduced. run_full_sample and era_state are re-run under the
+# English build for their language-variant figures only; the numbers they write
+# are identical to the French build, so the CSV outputs are unchanged.
 LANGUAGE_VARIANT_STEPS = (
+    ("full-sample H1--H3 figures", "analysis.run_full_sample"),
+    ("H1 forest figure (post-reselection)", "figures.figure_h1_forest"),
+    ("era and state figures", "analysis.era_state"),
     ("main paper figures", "figures.figures_main"),
     ("state figures", "figures.figures_state"),
     ("inflation-state figure", "figures.figure_signal_inflation"),
     ("H3 relative-wealth figure", "figures.figure_h3_wealth"),
     ("appendix tables", "figures.appendix_tables"),
     ("provenance table", "figures.provenance_table"),
+    ("allocation overview", "figures.figure_allocation_overview"),
 )
 
 
@@ -142,25 +148,40 @@ def main(argv: list[str] | None = None) -> int:
         run_step("data fetch and input preflight", "data.fetch_inputs", *refresh)
     run_step("full-sample H1--H3", "analysis.run_full_sample")
     run_step("inference corrections (Holm, joint dependence, H3 reverse, RDD)", "analysis.inference_corrections")
+    # Producer chain that must precede era_state: the macro controls write
+    # h1_alpha_controls_comparison, which the post-2000 panel reconciles against;
+    # the panel in turn writes post_2000_h1_market_means, which era_state reads
+    # via load_alpha_data(). Both depend only on run_full_sample and the joint
+    # dependence inference produced just above, so they run here.
+    run_step("macroeconomic controls", "analysis.macro_controls")
+    run_step("post-2000 panel", "analysis.post_2000_panel")
     run_step("era and state analysis", "analysis.era_state")
     # Reads the monthly signal states written by era_state; must precede the
     # inflation-state figure and the predictive mechanism check, which read its
     # inflation joint-inference output.
     run_step("supplementary inference (direct Sharpe, static era, reselection)", "analysis.supplementary_inference")
+    # The H1 forest figure overlays the reference-reselection intervals written
+    # by supplementary_inference, so it is rendered here rather than inside
+    # run_full_sample. It runs after the audit in both language builds (this
+    # French pass and the English language pass), so both figures are identical.
+    run_step("H1 forest figure (post-reselection)", "figures.figure_h1_forest")
+    run_step("deflated Sharpe and HLZ multiple-testing haircut", "analysis.deflated_sharpe")
     run_step("signal calendar counterfactuals", "analysis.signal_calendar_counterfactuals")
-    run_step("post-2000 panel", "analysis.post_2000_panel")
     run_step("era timing", "analysis.era_timing")
     run_step("main paper figures", "figures.figures_main")
     run_step("state figures", "figures.figures_state")
     run_step("inflation-state figure", "figures.figure_signal_inflation")
     run_step("H3 relative-wealth figure", "figures.figure_h3_wealth")
-    run_step("macroeconomic controls", "analysis.macro_controls")
     run_step("appendix tables", "figures.appendix_tables")
     run_step("provenance table", "figures.provenance_table")
     run_step("supply-shock IRF (US complement)", "analysis.supply_shock_irf")
-    # Referee-report robustness suite (report 1, block 1). The allocation-overview
-    # figure is deliberately NOT reproduced here: it plots prior-study constants as
-    # an explicit contextual reference, outside this paper's inference.
+    # The allocation-overview figure places this paper's H1/H3 net Sharpe ratios
+    # beside three constants quoted from the previous four-quadrant paper. It is
+    # contextual and outside this paper's inference, but it is reproduced (here in
+    # French, and in English via the language pass) so both manuscripts build from
+    # a clean run.
+    run_step("allocation overview (contextual)", "figures.figure_allocation_overview")
+    # Referee-report robustness suite (report 1, block 1).
     run_step("US gold-parity robustness", "analysis.us_gold_parity_robustness")
     run_step("per-benchmark advantages", "analysis.per_benchmark_advantage")
     run_step("FX-hedged gold robustness", "analysis.fx_hedged_gold")

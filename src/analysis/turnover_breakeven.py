@@ -2,7 +2,7 @@
 
 Inputs: the wired H1 engine (``engine.engine``) and the H3 graded-variant
 builders (``analysis.h3_variant``), on the configured snapshots.
-Outputs: ``results/complete-sample-rerun-2026-07-26/turnover_breakeven.csv``,
+Outputs: ``results/full-sample/turnover_breakeven.csv``,
 one row per market plus a cross-market median row.
 Purpose: referee comment M11. (1) Annualized one-way turnover, defined as the
 mean monthly traded weight sum(|w - w_drift|) times 12, in percent, for the

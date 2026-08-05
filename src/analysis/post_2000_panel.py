@@ -158,7 +158,7 @@ def reconcile(result: pd.DataFrame) -> None:
                 )
 
     controls = pd.read_csv(
-        CONTROL_OUT / "h1_alpha_controls_comparison_2026-07-27.csv"
+        CONTROL_OUT / "h1_alpha_controls_comparison.csv"
     )
     controls = controls[
         controls["column"].astype(str).eq("2")
@@ -212,13 +212,13 @@ def main() -> int:
     result = pd.DataFrame(rows)
     reconcile(result)
     result.to_csv(
-        OUT / "post_2000_h1_inference_2026-07-27.csv",
+        OUT / "post_2000_h1_inference.csv",
         index=False,
     )
 
     markets = pd.DataFrame(market_rows(data))
     markets.to_csv(
-        OUT / "post_2000_h1_market_means_2026-07-27.csv",
+        OUT / "post_2000_h1_market_means.csv",
         index=False,
     )
     print(

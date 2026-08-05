@@ -20,6 +20,7 @@ from linearmodels.panel import PanelOLS
 from scipy.stats import norm
 
 from analysis import run_full_sample as R
+from common.stats import holm_adjust
 from analysis.era_timing import (
     portfolio,
     risk_normalized_difference,
@@ -30,22 +31,21 @@ from engine import engine as E
 
 OUT = R.OUT
 
-DATE_TAG = "2026-07-27"
 SEED = 20260727
 BOOTSTRAP_DRAWS = 9999
 BLOCK_MONTHS = 12
 CUT = pd.Period("2000-01", freq="M")
 
-STATE_FILE = OUT / "h1_signal_states_monthly_2026-07-27.csv"
+STATE_FILE = OUT / "h1_signal_states_monthly.csv"
 H1_FILE = OUT / "h1_per_market.csv"
 
-DIRECT_FILE = OUT / f"h1_direct_sharpe_joint_inference_{DATE_TAG}.csv"
-RESELECT_FILE = OUT / f"h1_reference_reselection_bootstrap_{DATE_TAG}.csv"
-MONTHLY_COUNTRY_FILE = OUT / f"h1_full_history_monthly_static_country_{DATE_TAG}.csv"
-MONTHLY_INFERENCE_FILE = OUT / f"h1_full_history_monthly_static_inference_{DATE_TAG}.csv"
-INFLATION_FILE = OUT / f"inflation_signal_joint_inference_{DATE_TAG}.csv"
-GOLD_FILE = OUT / f"gold_local_currency_audit_{DATE_TAG}.csv"
-WEALTH_FILE = OUT / f"h1_post2000_relative_wealth_{DATE_TAG}.csv"
+DIRECT_FILE = OUT / "h1_direct_sharpe_joint_inference.csv"
+RESELECT_FILE = OUT / "h1_reference_reselection_bootstrap.csv"
+MONTHLY_COUNTRY_FILE = OUT / "h1_full_history_monthly_static_country.csv"
+MONTHLY_INFERENCE_FILE = OUT / "h1_full_history_monthly_static_inference.csv"
+INFLATION_FILE = OUT / "inflation_signal_joint_inference.csv"
+GOLD_FILE = OUT / "gold_local_currency_audit.csv"
+WEALTH_FILE = OUT / "h1_post2000_relative_wealth.csv"
 
 
 GOLD_CONSTRUCTION = {
@@ -345,15 +345,9 @@ def reference_reselection_bootstrap(
             }
         )
     result = pd.DataFrame(rows)
-    order = result["bootstrap_probability_nonpositive"].sort_values().index
-    adjusted = pd.Series(index=result.index, dtype=float)
-    running_maximum = 0.0
-    number = len(result)
-    for rank, index in enumerate(order):
-        raw = float(result.loc[index, "bootstrap_probability_nonpositive"])
-        running_maximum = max(running_maximum, (number - rank) * raw)
-        adjusted.loc[index] = min(1.0, running_maximum)
-    result["holm_adjusted_p"] = adjusted
+    result["holm_adjusted_p"] = holm_adjust(
+        result["bootstrap_probability_nonpositive"]
+    )
     result["holm_significant_5pct"] = result["holm_adjusted_p"].lt(0.05)
     return result
 

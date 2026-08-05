@@ -12,6 +12,7 @@ full-sample state shares and risk-adjusted panel, and produces the two French
 figures used in the temporal-analysis section.
 """
 from __future__ import annotations
+from pathlib import Path
 
 import hashlib
 import os
@@ -47,19 +48,18 @@ from figures.plot_style import (
 
 OUT = R.OUT
 CUT = pd.Period("2000-01", freq="M")
-DATE_TAG = "2026-07-27"
 
-MONTHLY_NAME = f"h1_signal_states_monthly_{DATE_TAG}.csv"
-SUMMARY_NAME = f"h1_signal_states_pre_post_2000_{DATE_TAG}.csv"
-SYNC_MONTHLY_NAME = f"h1_signal_synchronization_monthly_{DATE_TAG}.csv"
-SYNC_SUMMARY_NAME = f"h1_signal_synchronization_pre_post_2000_{DATE_TAG}.csv"
-PERFORMANCE_NAME = f"h1_signal_state_performance_pre_post_2000_{DATE_TAG}.csv"
-ROLLING_ALPHA_NAME = f"h1_rolling_alpha_60m_{DATE_TAG}.csv"
+MONTHLY_NAME = "h1_signal_states_monthly.csv"
+SUMMARY_NAME = "h1_signal_states_pre_post_2000.csv"
+SYNC_MONTHLY_NAME = "h1_signal_synchronization_monthly.csv"
+SYNC_SUMMARY_NAME = "h1_signal_synchronization_pre_post_2000.csv"
+PERFORMANCE_NAME = "h1_signal_state_performance_pre_post_2000.csv"
+ROLLING_ALPHA_NAME = "h1_rolling_alpha_60m.csv"
 FIGURE_A_NAME = "h1_alpha_pre_post_2000_13_markets_fr.png"
 FIGURE_B_NAME = "h1_signal_state_pre_post_2000_13_markets_fr.png"
 FIGURE_C_NAME = "h1_signal_state_timeseries_13_markets_fr.png"
 FIGURE_D_NAME = "h1_rolling_alpha_60m_13_markets_fr.png"
-MANIFEST_NAME = f"h1_signal_state_outputs_sha256_{DATE_TAG}.csv"
+MANIFEST_NAME = "h1_signal_state_outputs_sha256.csv"
 
 def setup_plotting() -> None:
     setup_matplotlib()
@@ -414,7 +414,7 @@ def performance_summaries(monthly: pd.DataFrame) -> pd.DataFrame:
 
 def load_alpha_data() -> pd.DataFrame:
     data = pd.read_csv(
-        OUT / f"post_2000_h1_market_means_{DATE_TAG}.csv"
+        OUT / "post_2000_h1_market_means.csv"
     )
     data["ci95_low"] = (
         data["alpha_annualized_sharpe"]

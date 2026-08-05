@@ -4,7 +4,7 @@ Inputs: published complete-sample CSV/JSON files
     ``inflation_signal_by_market.csv`` (per-market bond-state inflation
     coefficient and HAC standard error), ``summary.json`` (the pooled
     ``inflation_validity`` block) and
-    ``inflation_signal_joint_inference_2026-07-27.csv`` (Driscoll--Kraay
+    ``inflation_signal_joint_inference.csv`` (Driscoll--Kraay
     pooled confidence interval).
 Outputs: ``currency_signal_inflation_13_markets_fr.png`` (French build) or the
     ``_en`` variant, in the complete-sample result directory.
@@ -43,7 +43,7 @@ def inflation_figure() -> None:
     with (OUT / "summary.json").open(encoding="utf-8") as stream:
         pooled = json.load(stream)["inflation_validity"]
     joint = pd.read_csv(
-        OUT / "inflation_signal_joint_inference_2026-07-27.csv"
+        OUT / "inflation_signal_joint_inference.csv"
     ).set_index("method")
     pooled_dk12 = joint.loc["driscoll_kraay_12"]
 

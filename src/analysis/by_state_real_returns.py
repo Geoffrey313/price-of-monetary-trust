@@ -2,7 +2,7 @@
 
 Inputs: the wired thirteen-market engine (pocket return series and CPI levels
 from the derived layer).
-Outputs: ``results/complete-sample-rerun-2026-07-26/by_state_real_returns.csv``.
+Outputs: ``results/full-sample/by_state_real_returns.csv``.
 Purpose: show directly whether the state variable sorts months in which bonds
 beat gold in real terms from months in which gold beats bonds.  For every
 market the engine's nominal bond and gold pocket returns

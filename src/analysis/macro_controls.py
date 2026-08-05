@@ -3,11 +3,12 @@
 Inputs: primary H1/H2 result CSV files and dated public macro-control CSV
 snapshots.
 Outputs: control panels, estimates, sensitivity files, audit inventory, and
-French report in ``results/controls-13-markets-2026-07-27``.
+French report in ``results/controls-13-markets``.
 Purpose: assess whether oil position, central-bank balance sheets, or broad
 money account for the published H1/H2 results.
 """
 from __future__ import annotations
+from pathlib import Path
 
 import hashlib
 import itertools
@@ -21,6 +22,7 @@ from scipy.stats import norm
 from analysis import run_full_sample as R
 from common.names import EURO, MARKETS
 from common.paths import FULL_SAMPLE_RESULTS, MACRO_DATA, MACRO_RESULTS, REPO_ROOT
+from common.stats import holm_adjust
 
 SOURCE_OUT = FULL_SAMPLE_RESULTS
 OUT = MACRO_RESULTS
@@ -421,17 +423,6 @@ def stars(p_value: float) -> str:
     return ""
 
 
-def holm(values: pd.Series) -> pd.Series:
-    array = values.to_numpy(float)
-    order = np.argsort(array)
-    adjusted = np.empty(len(array))
-    running = 0.0
-    for rank, position in enumerate(order):
-        running = max(running, min(1.0, (len(array) - rank) * array[position]))
-        adjusted[position] = running
-    return pd.Series(adjusted, index=values.index)
-
-
 def run_main_models(
     h1_risk: pd.DataFrame,
     h1_raw: pd.DataFrame,
@@ -492,10 +483,10 @@ def run_main_models(
     result["two_way_cluster_holm_six"] = np.nan
     result["score_signflip_holm_six"] = np.nan
     core = result["core_test"]
-    result.loc[core, "two_way_cluster_holm_six"] = holm(
+    result.loc[core, "two_way_cluster_holm_six"] = holm_adjust(
         result.loc[core, "two_way_cluster_p_two_sided"]
     )
-    result.loc[core, "score_signflip_holm_six"] = holm(
+    result.loc[core, "score_signflip_holm_six"] = holm_adjust(
         result.loc[core, "country_score_signflip_p_two_sided"]
     )
     result.to_csv(OUT / "macro_control_panel_results.csv", index=False)
@@ -710,7 +701,7 @@ def h1_alpha_control_comparison(
                 )
 
     result.to_csv(
-        OUT / "h1_alpha_controls_comparison_2026-07-27.csv",
+        OUT / "h1_alpha_controls_comparison.csv",
         index=False,
     )
     return result
@@ -1318,8 +1309,7 @@ def output_inventory() -> None:
         "broad_money_lag_sensitivity.csv",
         "macro_control_coverage.csv",
         "macro_control_audit.csv",
-        "h1_alpha_controls_comparison_2026-07-27.csv",
-        "AUDIT-P0-H1-PETROLE-BINAIRE-FR.md",
+        "h1_alpha_controls_comparison.csv",
         REPORT.name,
     ]
     rows = []

@@ -2,10 +2,10 @@
 
 Outputs
 -------
-results/complete-sample-rerun-2026-07-26/h1_holm_13_markets.csv
-results/complete-sample-rerun-2026-07-26/h1_joint_dependence_inference.csv
-results/complete-sample-rerun-2026-07-26/h3_reverse_inference.csv
-results/complete-sample-rerun-2026-07-26/rdd_1999_full_rank.csv
+results/full-sample/h1_holm_13_markets.csv
+results/full-sample/h1_joint_dependence_inference.csv
+results/full-sample/h3_reverse_inference.csv
+results/full-sample/rdd_1999_full_rank.csv
 
 The pooled calendar-month H3 inference (``h3_pooled_calendar_inference.csv``) is
 produced by ``analysis.run_full_sample`` (the ``run_h3`` stage) and is not
@@ -31,24 +31,12 @@ from scipy.stats import norm
 
 from analysis import run_full_sample as rerun
 from analysis.h3_variant import run_variant, series_for
+from common.stats import holm_adjust
 
 EURO = rerun.EURO
 MARKETS = rerun.MARKETS
 NAMES = rerun.NAMES
 OUT = rerun.OUT
-
-
-def holm_adjust(p_values: pd.Series) -> pd.Series:
-    """Return Holm step-down adjusted p-values in the original row order."""
-    order = np.argsort(p_values.to_numpy())
-    sorted_p = p_values.to_numpy()[order]
-    adjusted_sorted = np.maximum.accumulate(
-        (len(sorted_p) - np.arange(len(sorted_p))) * sorted_p
-    )
-    adjusted_sorted = np.minimum(adjusted_sorted, 1.0)
-    adjusted = np.empty(len(sorted_p))
-    adjusted[order] = adjusted_sorted
-    return pd.Series(adjusted, index=p_values.index)
 
 
 def write_h1_holm() -> pd.DataFrame:

@@ -13,9 +13,8 @@ data/
 └── macro_controls/2026-07-27/
 ```
 
-The source tree contains no credentials and no licensed raw data. During the
-local transition from the research workspace, the path resolver can read the
-same directories under `tooling/`; a clean clone should use the layout above.
+The source tree contains no credentials and no licensed raw data. A clean clone
+should use the layout above.
 
 ## The derived layer and `--from-derived`
 

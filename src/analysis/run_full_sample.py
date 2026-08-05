@@ -3,7 +3,7 @@
 Inputs: public snapshots and licensed reconstructed parquet inputs from the
 configured data directory.
 Outputs: the complete CSV, JSON, and PNG result set in
-``results/complete-sample-rerun-2026-07-26``.
+``results/full-sample``.
 Purpose: run the paper's primary H1 monetary test, H2 energy test, H3 functional
 form comparison, inference, robustness checks, and primary figures.
 
@@ -16,7 +16,7 @@ has a valid lagged market capitalisation.  The same rule is applied to every
 market.  Concentration is reported rather than used as an exclusion rule.
 
 Outputs are written below:
-    docs/four_quadrant/results/complete-sample-rerun-2026-07-26/
+    docs/four_quadrant/results/full-sample/
 """
 from __future__ import annotations
 
@@ -1035,8 +1035,19 @@ def run_sensitivity() -> dict:
     return {"costs": cost_rows, "windows": window_rows}
 
 
-def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
-    print("\n[figures] separate audit outputs", flush=True)
+def render_h1_forest() -> None:
+    """Render the H1 forest figure with the reference-reselection intervals.
+
+    Inputs: ``h1_per_market.csv`` (advantage and raw intervals) and
+    ``h1_reference_reselection_bootstrap.csv`` (intervals that reselect
+    max(60/40, permanent) in every bootstrap draw), both from ``OUT``. The
+    reselection audit is produced by ``analysis.supplementary_inference``, so
+    this step must run after it; the file is therefore always present.
+    Output: ``h1_advantage_13_markets.png`` (language suffix via ``figpath``).
+    Purpose: render the forest once, post-reselection, so the French and English
+    figures are identical and stable across reruns.
+    """
+    print("\n[figures] H1 forest (post-reselection)", flush=True)
     plt.rcParams.update(
         {
             "text.usetex": True,
@@ -1053,20 +1064,19 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
     )
 
     # H1 forest.  The dated audit file reselects max(60/40, permanent) in
-    # every bootstrap draw.  Prefer those intervals when the audit has run.
-    reselected_path = OUT / "h1_reference_reselection_bootstrap_2026-07-27.csv"
-    if reselected_path.exists():
-        reselected = pd.read_csv(reselected_path)[
-            ["market", "bootstrap_ci95_low", "bootstrap_ci95_high"]
-        ].rename(
-            columns={
-                "bootstrap_ci95_low": "ci_low_reselected",
-                "bootstrap_ci95_high": "ci_high_reselected",
-            }
-        )
-        h1 = h1.merge(reselected, on="market", how="left")
-        h1["ci_low"] = h1["ci_low_reselected"].fillna(h1["ci_low"])
-        h1["ci_high"] = h1["ci_high_reselected"].fillna(h1["ci_high"])
+    # every bootstrap draw.  Those intervals are always preferred.
+    h1 = pd.read_csv(OUT / "h1_per_market.csv")
+    reselected = pd.read_csv(OUT / "h1_reference_reselection_bootstrap.csv")[
+        ["market", "bootstrap_ci95_low", "bootstrap_ci95_high"]
+    ].rename(
+        columns={
+            "bootstrap_ci95_low": "ci_low_reselected",
+            "bootstrap_ci95_high": "ci_high_reselected",
+        }
+    )
+    h1 = h1.merge(reselected, on="market", how="left")
+    h1["ci_low"] = h1["ci_low_reselected"].fillna(h1["ci_low"])
+    h1["ci_high"] = h1["ci_high_reselected"].fillna(h1["ci_high"])
 
     # H1 forest
     d = h1.sort_values("advantage").reset_index(drop=True)
@@ -1098,6 +1108,24 @@ def make_plots(h1: pd.DataFrame, h2: pd.DataFrame, h3: pd.DataFrame) -> None:
         bbox_inches="tight",
     )
     plt.close(fig)
+
+
+def make_plots(h2: pd.DataFrame, h3: pd.DataFrame) -> None:
+    print("\n[figures] separate audit outputs", flush=True)
+    plt.rcParams.update(
+        {
+            "text.usetex": True,
+            "font.family": "serif",
+            "font.serif": ["Computer Modern Roman"],
+            "font.size": 10.5,
+            "text.color": INK,
+            "axes.labelcolor": INK,
+            "axes.edgecolor": "#444444",
+            "figure.facecolor": "white",
+            "axes.facecolor": "white",
+            "savefig.facecolor": "white",
+        }
+    )
 
     # H2 four-arm decomposition, all 13 countries.
     d = h2.sort_values("augmentation_advantage").reset_index(drop=True)
@@ -1268,13 +1296,17 @@ def main() -> int:
 
     wire_everything()
     h1_results, risk_panel, h1_summary = run_h1()
-    h1 = pd.read_csv(OUT / "h1_per_market.csv")
     h2, h2_summary = run_h2()
     h3, h3_summary = run_h3()
     inflation_summary = run_inflation_validity(h1_results)
     rdd = run_rdd(risk_panel)
     sensitivity = run_sensitivity()
-    make_plots(h1, h2, h3)
+    # The H1 forest figure is rendered by a separate step
+    # (``figures.figure_h1_forest``) that runs after the reference-reselection
+    # audit in ``analysis.supplementary_inference``, so it always uses the
+    # reselected intervals in both language builds. The remaining figures do not
+    # depend on any later step and stay here.
+    make_plots(h2, h3)
 
     summary = {
         "run_date": "2026-07-26",

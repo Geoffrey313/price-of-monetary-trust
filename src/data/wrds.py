@@ -6,20 +6,17 @@ Outputs: data frames returned in memory; reconstruction modules write parquet
 inputs beneath the configured data directory.
 Purpose: provide licensed market inputs for H1 and H2 without storing secrets
 or licensed raw observations in the published repository.
-Pattern ported from ``THU_NUCLEAR/wrds_fetcher`` (the connection idiom used by
-every working script there), generalised for reuse.
 
 Usage
 -----
     from data.wrds import WRDSClient
 
-    with WRDSClient() as db:                     # reads arcane/.env.local
+    with WRDSClient() as db:                     # reads credentials from .env.local
         one = db.get_table("comp_na_daily_all", "funda", obs=1)
         df  = db.raw_sql("SELECT ... FROM ...")
 
-Network note: WRDS pgdata (165.123.60.0/24 :9737) must be reachable. On this
-host it sits behind a Tailscale exit node — run ``wrds_bypass_test.sh`` (sudo)
-first to route that subnet locally.
+Network note: a reachable WRDS pgdata endpoint is required; connectivity is
+site-specific and out of scope for this repository.
 """
 from __future__ import annotations
 

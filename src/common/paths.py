@@ -14,8 +14,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = REPO_ROOT / "src"
 RESULTS_ROOT = REPO_ROOT / "results"
-FULL_SAMPLE_RESULTS = RESULTS_ROOT / "complete-sample-rerun-2026-07-26"
-MACRO_RESULTS = RESULTS_ROOT / "controls-13-markets-2026-07-27"
+FULL_SAMPLE_RESULTS = RESULTS_ROOT / "full-sample"
+MACRO_RESULTS = RESULTS_ROOT / "controls-13-markets"
 PAPER_ROOT = REPO_ROOT / "paper"
 PAPER_GENERATED = PAPER_ROOT / "_gen"
 

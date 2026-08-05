@@ -21,6 +21,7 @@ regression with a post-2000 indicator tests the direct difference between
 the two era-specific normalized timing estimates.
 """
 from __future__ import annotations
+from pathlib import Path
 
 import hashlib
 
@@ -35,18 +36,17 @@ from engine import engine as E
 
 OUT = FULL_SAMPLE_RESULTS
 
-DATE_TAG = "2026-07-27"
 CUT = pd.Period("2000-01", freq="M")
 BLOCK_MONTHS = 12
 BOOTSTRAP_DRAWS = 9999
 SEED = 20260727
 
-COUNTRY_NAME = f"h1_timing_era_country_{DATE_TAG}.csv"
-SUMMARY_NAME = f"h1_timing_era_summary_{DATE_TAG}.csv"
-MONTHLY_NAME = f"h1_timing_era_monthly_z_{DATE_TAG}.csv"
-INFERENCE_NAME = f"h1_timing_era_inference_{DATE_TAG}.csv"
-CONTRAST_NAME = f"h1_timing_era_contrast_{DATE_TAG}.csv"
-MANIFEST_NAME = f"h1_timing_era_sha256_{DATE_TAG}.csv"
+COUNTRY_NAME = "h1_timing_era_country.csv"
+SUMMARY_NAME = "h1_timing_era_summary.csv"
+MONTHLY_NAME = "h1_timing_era_monthly_z.csv"
+INFERENCE_NAME = "h1_timing_era_inference.csv"
+CONTRAST_NAME = "h1_timing_era_contrast.csv"
+MANIFEST_NAME = "h1_timing_era_sha256.csv"
 
 
 def sharpe(excess_return: pd.Series | np.ndarray) -> float:

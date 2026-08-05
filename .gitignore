@@ -7,6 +7,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 *.egg-info/
 .venv/
@@ -25,6 +26,9 @@ venv/
 # --- Frozen pre-registration records (gate/freeze framing; superseded by the
 #     full-sample methodology of the paper — kept locally, not published) ---
 /protocol/
+
+# --- Internal working notes: audit reports, session logs (kept locally, not published) ---
+/docs/
 
 # --- LaTeX build artifacts (the .tex and .pdf are kept) ---
 paper/*.aux

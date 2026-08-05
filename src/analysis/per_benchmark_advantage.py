@@ -3,9 +3,9 @@
 Inputs: the in-memory monthly series from the H1 engine
 (``engine.engine.run_market`` with the derived data layer wired by
 ``analysis.run_full_sample.wire_everything``) and the published
-``results/complete-sample-rerun-2026-07-26/h1_per_market.csv`` used as a
+``results/full-sample/h1_per_market.csv`` used as a
 cross-check.
-Outputs: ``results/complete-sample-rerun-2026-07-26/
+Outputs: ``results/full-sample/
 h1_per_benchmark_advantage.csv`` and a printed table.
 Purpose: referee point M8.  The paper's headline advantage is measured
 against the binding benchmark, max(SR_6040, SR_permanent), which conceals how
