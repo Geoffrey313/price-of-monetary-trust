@@ -10,16 +10,11 @@ abstract: >
   the modern tradeable sample.
 type: software
 authors:
-  - family-names: Ducournau
-    given-names: Geoffrey
-    affiliation: "Dimtech SAS"
-  - family-names: Li
-    given-names: Jinliang
-    affiliation: "Tsinghua University"
+  - name: "Anonymous (double-blind review)"
 date-released: 2026-07-28
 license: MIT
-url: "https://github.com/Geoffrey313/price-of-monetary-trust"
-repository-code: "https://github.com/Geoffrey313/price-of-monetary-trust"
+url: "https://anonymous.4open.science/r/price-of-monetary-trust-FCFF/"
+repository-code: "https://anonymous.4open.science/r/price-of-monetary-trust-FCFF/"
 keywords:
   - asset allocation
   - gold

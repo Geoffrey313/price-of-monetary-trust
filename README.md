@@ -3,7 +3,7 @@
 Replication package for:
 
 > **Bonds or Gold: The Price of Monetary Trust**
-> Geoffrey Ducournau, Jinliang Li
+> **Author: Anonymous (double-blind review).**
 
 This repository holds only the code that reproduces the results of the paper
 *Bonds or Gold: The Price of Monetary Trust*. The manuscript and the data are not
@@ -113,8 +113,9 @@ inputs the offline run needs are shipped under `data/`.
 
 ## Contact
 
-Questions about the code, or requests for the licensed reconstruction inputs:
-Geoffrey Ducournau, G.ducournau.voisin@gmail.com.
+Author contact is withheld for double-blind review. Questions about the code and
+requests for the licensed reconstruction inputs should be routed through the
+submission system; contact details will be restored on publication.
 
 ## The paper
 
