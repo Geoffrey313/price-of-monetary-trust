@@ -14,7 +14,10 @@ __pycache__/
 venv/
 
 # --- This repository publishes ONLY the code that reproduces the results. ---
-# --- The manuscript, the generated results, and licensed/raw input data stay out. ---
+# --- The manuscripts, the generated results, and licensed/raw input data stay out. ---
+# Canonical manuscript tree (manuscript/<lang>/ssrn/…) and the legacy paper/ build
+# inputs it reads (generated _gen fragments, meta) are workspace-only, never published.
+/manuscript/
 /paper/
 /results/
 /data/*
